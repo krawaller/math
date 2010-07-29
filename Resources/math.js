@@ -132,6 +132,16 @@ M.prod.multiply = function(a1,a2){
     if (a2.type==="prod"){
         return M.prod(Array.prepend(a2.factors,a1));
     }
+    // Multiplying two values returns a multiplied value with multiplied units
+    if (a1.type==="val" && a2.type==="val"){
+        var unit = {};
+        [a1,a2].map(function(a){
+            for(var u in a.unit){
+                unit[u] = (unit[u] ? unit[u] : 0) + a.unit[u];
+            }
+        });
+        return M.val(a1.val * a2.val, unit);
+    }
     // Default: just merge the two args into a product
     return M.prod([a1,a2]);
 };

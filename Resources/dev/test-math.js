@@ -283,6 +283,14 @@ JSpec.describe("Math library",function(){
                 expect(ret.factors[ret.factors.length-1].val).to(be,arr[arr.length-1].val);
                 expect(ret.factors[1].positionInParent).to(be,"inlist");
             });
+            it("should merge two values into a val with merged unit",function(){
+                var v1 = M.val(666,{g:7}), v2 = M.val(-777,{g:2,h:3}), ret = M.prod.multiply(v1,v2);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"val");
+                expect(ret.val).to(be,v1.val * v2.val);
+                expect(ret.unit.g).to(be,v1.unit.g + v2.unit.g);
+                expect(ret.unit.h).to(be,v2.unit.h);
+            });
         });
     });
 });
