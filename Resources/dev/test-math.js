@@ -236,5 +236,53 @@ JSpec.describe("Math library",function(){
             expect(x.factors[1].positionInParent).to(be,"inlist");
             expect(x.factors[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The multiply function",function(){
+            it("should be defined",function(){
+                expect(M.prod.multiply).to(be_a,Function);
+            });
+            it("should merge two incompatible values into a prod",function(){
+                var a1 = {type: "testobj",val: 666}, a2 = {type: "testobj2",val: 667}, ret = M.prod.multiply(a1,a2);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"prod");
+                expect(ret.factors[0].val).to(be,a1.val);
+                expect(ret.factors[1].val).to(be,a2.val);
+            });
+            it("should merge two prods into a new prod with updated annotations",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], arr2 = [M.val(4),M.val(5),M.val(6)],
+                    p1 = M.prod(arr1), p2 = M.prod(arr2), ret = M.prod.multiply(p1,p2);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"prod");
+                expect(ret.factors.length).to(be,arr1.length+arr2.length);
+                expect(ret.factors[0].val).to(be,arr1[0].val);
+                expect(ret.factors[arr1.length-1].val).to(be,arr1[arr1.length-1].val);
+                expect(ret.factors[arr1.length].val).to(be,arr2[0].val);
+                expect(ret.factors[ret.factors.length-1].val).to(be,arr2[arr2.length-1].val);
+                expect(ret.factors[arr1.length-1].positionInParent).to(be,"inlist");
+                expect(ret.factors[arr1.length].positionInParent).to(be,"inlist");
+            });
+            it("should merge a prod and an item into a prod with updated annotations and the item at the end",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), 
+                    item = {type: "testobj",val: 666}, ret = M.prod.multiply(prod,item);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"prod");
+                expect(ret.factors.length).to(be,arr.length+1);
+                expect(ret.factors[arr.length].val).to(be,item.val);
+                expect(ret.factors[arr.length].positionInParent).to(be,"last");
+                expect(ret.factors[arr.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.factors[arr.length-1].positionInParent).to(be,"inlist");
+            });
+            it("should merge an item and a prod into a prod with updated annotations and the item at the beginning",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), 
+                    item = {type: "testobj",val: 666}, ret = M.prod.multiply(item,prod);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"prod");
+                expect(ret.factors.length).to(be,arr.length+1);
+                expect(ret.factors[0].val).to(be,item.val);
+                expect(ret.factors[0].positionInParent).to(be,"first");
+                expect(ret.factors[1].val).to(be,arr[0].val);
+                expect(ret.factors[ret.factors.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.factors[1].positionInParent).to(be,"inlist");
+            });
+        });
     });
 });

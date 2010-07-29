@@ -118,3 +118,20 @@ M.prod = function(arr){
     }
     return ret;
 };
+
+M.prod.multiply = function(a1,a2){
+    // Multiplying two prods should return one single prod with all factors
+    if (a1.type==="prod" && a2.type === "prod"){
+        return M.prod(Array.merge(a1.factors,a2.factors));
+    }
+    // Multiplying a prod and an item returns one single prod with that item at the end
+    if (a1.type==="prod"){
+        return M.prod(Array.append(a1.factors,a2));
+    }
+    // Multiplying an item and a prod returns one single prod with that item at the beginning
+    if (a2.type==="prod"){
+        return M.prod(Array.prepend(a2.factors,a1));
+    }
+    // Default: just merge the two args into a product
+    return M.prod([a1,a2]);
+};
