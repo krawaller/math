@@ -105,6 +105,24 @@ JSpec.describe("Math library",function(){
                 expect(res.unit.NUMBER).to(equal,1);
             });
         });
+        describe("The equal function",function(){
+            it("should be defined",function(){
+                expect(M.val.equal).to(be_a,Function);
+            });
+            it("should return false for two values with different val",function(){
+                var v1 = M.val(7), v2 = M.val(9), ret = M.val.equal(v1,v2);
+                expect(ret).to(be,false);
+            });
+            it("should return false for two values with same val but different unit",function(){
+                expect(M.val.equal(M.val(7),M.val(7,"x"))).to(be,false);
+                expect(M.val.equal(M.val(7,{x:1}),M.val(7,{x:2}))).to(be,false);
+                expect(M.val.equal(M.val(7,{x:1}),M.val(7,{x:1,y:3}))).to(be,false);
+            });
+            it("should return true for two values with same val and same unit",function(){
+                expect(M.val.equal(M.val(7),M.val(7))).to(be,true);
+                expect(M.val.equal(M.val(7,{y:3,x:1}),M.val(7,{x:1,y:3}))).to(be,true);
+            });
+        });
         describe("The compareUnits function",function(){
             it("should be defined",function(){
                 expect(M.val.compareUnits).to(be_a,Function);

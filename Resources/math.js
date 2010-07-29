@@ -53,6 +53,10 @@ M.val = function(val,unit){
     return ret;
 };
 
+M.val.equal = function(v1,v2){
+    return v1.val === v2.val && M.val.compareUnits(v1,v2);
+};
+
 M.val.compareUnits = function(v1,v2){
     // one or both arguments are not a M.val object, so we return false
     if (!v1 || typeof v1 !== "object" || v1.type != "val" || !v2 || typeof v2 !== "object" || v2.type != "val") {
