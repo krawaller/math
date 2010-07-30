@@ -184,6 +184,18 @@ M.prod = function(arr){
 };
 
 M.prod.multiply = function(a1,a2){
+    var zero = M.val(0), one = M.val(1);
+    // If either argument is a zero, just return 0
+    if (M.equal(a1,zero) || M.equal(a2,zero)){
+        return zero;
+    }
+    // If either argument is a unitless 1, return the other argument on its own
+    if (M.equal(a1,one)) {
+        return a2;
+    }
+    if (M.equal(a2,one)) {
+        return a1;
+    }
     // Multiplying two prods should return one single prod with all factors
     if (a1.type==="prod" && a2.type === "prod"){
         return M.prod(Array.merge(a1.factors,a2.factors));

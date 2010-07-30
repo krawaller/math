@@ -384,6 +384,18 @@ JSpec.describe("Math library",function(){
                 expect(ret.unit.g).to(be,v1.unit.g + v2.unit.g);
                 expect(ret.unit.h).to(be,v2.unit.h);
             });
+            it("should return a unitless zero if multiplying anything with a zero",function(){
+                var ret = M.prod.multiply( M.val(0), M.val(4,"x" ) );
+                expect(ret.type).to(be,"val");
+                expect(ret.unit).to(eql,M.val(0).unit);
+                ret = M.prod.multiply( M.val(0), {type:"foo"} );
+                expect(ret.type).to(be,"val");
+                expect(ret.unit).to(eql,M.val(0).unit);
+            });
+            it("should the other argument alone if multiplying with unitless 1",function(){
+                expect(M.prod.multiply( M.val(1), {type:"foo"} ).type).to(be,"foo");
+                expect(M.prod.multiply( {type:"foo"}, M.val(1) ).type).to(be,"foo");
+            });
             it("should merge a sum and an item into a sum with all terms multiplied with the item from the right",function(){
                 var v1 = M.val(3,"x"), v2 = M.val(4,"y"), v3 = {type:"foo"}, item = M.val(-3,{x:1,y:2,z:3}),
                     sum = M.sum([v1,v2,v3]), ret = M.prod.multiply(sum,item);
