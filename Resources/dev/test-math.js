@@ -187,6 +187,44 @@ JSpec.describe("Math library",function(){
             expect(x.terms[1].positionInParent).to(be,"inlist");
             expect(x.terms[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The harvestTerms function",function(){
+            it("should be defined",function(){
+                expect(M.sum.harvestTerms).to(be_a,Function);
+            });
+            it("should return an array with all terms",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.sum.harvestTerms(sum);
+                expect(ret).to(eql,sum.terms);
+            });
+            it("should also collect from nested sums",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
+                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.sum.harvestTerms(sum2);
+                expect(ret.length).to(be,5);
+                expect(M.equal(M.sum(ret),M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
+            });
+            it("should only collect to the given depth",function(){
+                var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
+                expect(M.sum.harvestTerms(sum,1).length).to(be,3);
+                expect(M.sum.harvestTerms(sum,2).length).to(be,4);
+                expect(M.sum.harvestTerms(sum,0).length).to(be,2);
+            });
+        });
+        describe("The flattenSum function",function(){
+            it("should be defined",function(){
+                expect(M.sum.flattenSum).to(be_a,Function);
+            });
+            it("should return sum including terms from all contained sums",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
+                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.sum.flattenSum(sum2);
+                expect(ret.terms.length).to(be,5);
+                expect(M.equal(ret,M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
+            });
+            it("should only flatten to the given depth",function(){
+                var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
+                expect(M.sum.flattenSum(sum,1).terms.length).to(be,3);
+                expect(M.sum.flattenSum(sum,2).terms.length).to(be,4);
+                expect(M.sum.flattenSum(sum,0).terms.length).to(be,2);
+            });
+        });
         describe("The equal function",function(){
             it("should be defined",function(){
                 expect(M.sum.equal).to(be_a,Function);
@@ -346,8 +384,39 @@ JSpec.describe("Math library",function(){
                 expect(ret.unit.g).to(be,v1.unit.g + v2.unit.g);
                 expect(ret.unit.h).to(be,v2.unit.h);
             });
-            it("should merge a sum and an item into a sum with all terms multiplied with the item",function(){
-                
+            it("should merge a sum and an item into a sum with all terms multiplied with the item from the right",function(){
+                var v1 = M.val(3,"x"), v2 = M.val(4,"y"), v3 = {type:"foo"}, item = M.val(-3,{x:1,y:2,z:3}),
+                    sum = M.sum([v1,v2,v3]), ret = M.prod.multiply(sum,item);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"sum");
+                expect(ret.terms.length).to(be,sum.terms.length);
+                expect(M.equal(M.prod.multiply(v1,item),ret.terms[0])).to(be,true);
+                expect(M.equal(M.prod.multiply(v2,item),ret.terms[1])).to(be,true);
+                expect(ret.terms[ret.terms.length-1].type).to(be,"prod");
+                expect(ret.terms[ret.terms.length-1].factors[0].type).to(be,v3.type);                
+                expect(M.equal(ret.terms[ret.terms.length-1].factors[1],item)).to(be,true);
+              //  expect(M.sum.equal(ret,M.sum([M.prod.multiply(v1,item),M.prod.multiply(v2,item),M.prod.multiply(v3,item)]))).to(be,true);
+            });
+            it("should merge an item and a sum into a sum with all terms multiplied with the item from the left",function(){
+                var v1 = M.val(3,"x"), v2 = M.val(4,"y"), v3 = {type:"foo"}, item = M.val(-3,{x:1,y:2,z:3}),
+                    sum = M.sum([v1,v2,v3]), ret = M.prod.multiply(item,sum);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"sum");
+                expect(ret.terms.length).to(be,sum.terms.length);
+                expect(M.equal(M.prod.multiply(v1,item),ret.terms[0])).to(be,true);
+                expect(M.equal(M.prod.multiply(v2,item),ret.terms[1])).to(be,true);
+                expect(ret.terms[ret.terms.length-1].type).to(be,"prod");
+                expect(ret.terms[ret.terms.length-1].factors[1].type).to(be,v3.type);                
+                expect(M.equal(ret.terms[ret.terms.length-1].factors[0],item)).to(be,true);
+              //  expect(M.sum.equal(ret,M.sum([M.prod.multiply(v1,item),M.prod.multiply(v2,item),M.prod.multiply(v3,item)]))).to(be,true);
+            });
+            it("should merge two sums into one, with each term in one multiplied with each term in the other",function(){
+                var v1 = M.val(3,"x"), v2 = M.val(4,"y"), v3 = M.val(5,"x"), v4 = M.val(7),
+                    sum1 = M.sum([v1,v2]), sum2 = M.sum([v3,v4]), ret = M.prod.multiply(sum1,sum2);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"sum");
+                expect(M.equal( ret.terms[0], M.prod.multiply(sum1.terms[0],sum2.terms[0]))).to(be,true);
+                expect(M.equal( ret, M.sum([ M.prod.multiply(v1,v3),M.prod.multiply(v1,v4),M.prod.multiply(v2,v3),M.prod.multiply(v2,v4), ]) )).to(be,true);
             });
         });
     });

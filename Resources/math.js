@@ -108,6 +108,26 @@ M.sum = function(arr){
     return ret;
 };
 
+M.sum.harvestTerms = function(sum,depth){
+    var ret = [];
+    if (depth === undefined){
+        depth = -1;
+    }
+    sum.terms.map(function(item){
+        if (item.type === "sum" && depth !=0){
+            ret = Array.merge(ret,M.sum.harvestTerms(item,depth-1));
+        }
+        else {
+            ret.push(item);
+        } 
+    });
+    return ret;
+}
+
+M.sum.flattenSum = function(sum,depth){
+    return M.sum(M.sum.harvestTerms(sum,depth));
+}
+
 M.sum.add = function(a1,a2){
     // Adding two sums should return one single sum including all terms
     if (a1.type==="sum" && a2.type === "sum"){
@@ -185,6 +205,23 @@ M.prod.multiply = function(a1,a2){
             }
         });
         return M.val(a1.val * a2.val, unit);
+    }
+    // Multiplying a sum and an item returns a sum with all terms multiplied with the item from the right
+    // If the right item is a sum too, we flatten the result one step.
+    if (a1.type==="sum"){
+        var arr = [];
+        a1.terms.map(function(term){
+            arr.push(M.prod.multiply(term,a2));
+        });
+        return a2.type === "sum" ? M.sum.flattenSum( M.sum(arr), 1) : M.sum(arr);
+    }
+    // Multiplying an item and a sum returns a sum with all terms multiplied with the item from the left
+    if (a2.type==="sum"){
+        var arr = [];
+        a2.terms.map(function(term){
+            arr.push(M.prod.multiply(a1,term));
+        });
+        return M.sum(arr);
     }
     // Default: just merge the two args into a product
     return M.prod([a1,a2]);
