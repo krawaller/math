@@ -57,6 +57,16 @@ M.equal = function(a1,a2){
     throw "what the heck!?";
 }
 
+M.calc = function(item){
+    if (typeof item !== "object"){
+        throw "Huh?!";
+    }
+    if (item.type === "val"){
+        return item;
+    }
+}
+
+
 
 M.val = function(val,unit){
     var ret = {type: "val", val:val,unit: {} };
@@ -106,6 +116,15 @@ M.sum = function(arr){
     return ret;
 };
 
+M.sum.calc = function(sum){
+    var cur;
+    sum = M.sum.removeZeroes(M.sum.flattenSum(sum));
+    sum.terms.map(function(item){
+        cur = cur ? M.sum.add(cur,M.calc(item)) : item;
+    });
+    return cur;
+};
+
 M.sum.harvestTerms = function(sum,depth){
     var ret = [];
     if (depth === undefined){
@@ -147,6 +166,22 @@ M.sum.add = function(a1,a2){
     // Adding two sums should return one single sum including all terms
     if (a1.type==="sum" && a2.type === "sum"){
         return M.sum(Array.merge(a1.terms,a2.terms));
+    }
+    // Adding a value to a sum merges it if sum contains value of same unit
+    if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
+        var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
+        sum.terms.map(function(term){
+            if (M.val.compareUnits(val,term) && !merged){
+                arr.push( M.sum.add(val,term) );
+                merged = true;
+            }
+            else {
+                arr.push(term);
+            }
+        });
+        if (merged){
+            return M.sum(arr);
+        }
     }
     // Adding a sum and an item returns one single sum with that item at the end
     if (a1.type==="sum"){

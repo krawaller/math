@@ -31,6 +31,15 @@ JSpec.describe("Math library",function(){
                 expect(M.equal(M.prod(arr), M.prod(Array.merge(arr,[M.val(4)])))).to(be,false);
             });
         });
+        describe("The calc function",function(){
+            it("should be defined",function(){
+                expect(M.calc).to(be_a,Function);
+            });
+            it("should return values as they are",function(){
+                var val = M.val(32,"x");
+                expect(M.calc(val)).to(eql,val);
+            });
+        });
     });
     describe("The helper functions",function(){
         describe("Object clone",function(){
@@ -186,6 +195,16 @@ JSpec.describe("Math library",function(){
             expect(x.terms[1].positionInParent).to(be,"inlist");
             expect(x.terms[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The calc function",function(){
+            it("should be defined",function(){
+                expect(M.sum.calc).to(be_a,Function);
+            });
+            it("should add everything inside it",function(){
+                var sum = M.sum([M.val(2),M.val(3,"x"),M.val(4,{y:2}),M.sum([M.val(2,"x"),M.val(3,{y:2})]),M.val(0)]), ret = M.sum.calc(sum);
+                console.log(ret);
+                expect(M.equal(ret,M.sum([ M.val(7,{y:2}),M.val(5,"x"),M.val(2) ]))).to(be,true);
+            });
+        });
         describe("The harvestTerms function",function(){
             it("should be defined",function(){
                 expect(M.sum.harvestTerms).to(be_a,Function);
@@ -306,6 +325,12 @@ JSpec.describe("Math library",function(){
                 expect(ret.terms[1].val).to(be,arr[0].val);
                 expect(ret.terms[ret.terms.length-1].val).to(be,arr[arr.length-1].val);
                 expect(ret.terms[1].positionInParent).to(be,"inlist");
+            });
+            it("should merge a value into a sum if it contains value with same unit",function(){
+                var arr = [M.val(1),M.val(2,"x"),M.val(3)], sum = M.sum(arr), item = M.val(4,"x"),
+                    expected = M.sum([M.val(1),M.val(6,"x"),M.val(3)]);
+                expect(M.equal(M.sum.add(sum,item),expected)).to(be,true);
+                expect(M.equal(M.sum.add(item,sum),expected)).to(be,true);
             });
             it("should merge two values with same unit into a single value",function(){
                 var v1 = M.val(666,{g:7}), v2 = M.val(-777,{g:7}), ret = M.sum.add(v1,v2);
