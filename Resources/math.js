@@ -77,29 +77,8 @@ M.val = function(val,unit){
 };
 
 M.val.equal = function(v1,v2){
-    return v1.val === v2.val && M.val.compareUnits(v1,v2);
+    return v1.val === v2.val;
 };
-
-M.val.compareUnits = function(v1,v2){
-    // one or both arguments are not a M.val object, so we return false
-    if (!v1 || typeof v1 !== "object" || v1.type != "val" || !v2 || typeof v2 !== "object" || v2.type != "val") {
-        return false;
-    }
-    // for all units in v1, if same unit in v2 doesn't match, return false
-    for(var p in v1.unit){
-        if (v2.unit[p] !== v1.unit[p]){
-            return false;
-        }
-    }
-    // if second object contains unit not present in first, return false;
-    for(var p in v2.unit){
-        if (!v1.unit.hasOwnProperty(p)){
-            return false;
-        }
-    }
-    // all same!
-    return true;
-}
 
 M.sum = function(arr){
     var ret = {type: "sum",terms: []}, o, num = arr.length;
@@ -184,12 +163,12 @@ M.sum.add = function(a1,a2,order){
     if (a1.type==="sum" && a2.type === "sum"){
         return M.sum(Array.merge(a1.terms,a2.terms));
     }
-    // Adding a value to a sum merges it if sum contains value of same unit
+    // Adding a value to a sum merges it if sum contains value
     if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
         var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
         sum = M.sum.calc(sum);
         sum.terms.map(function(term){
-            if (M.val.compareUnits(val,term) && !merged){
+            if (term.type==="val" && !merged){
                 arr.push( M.sum.add(val,term) );
                 merged = true;
             }
@@ -210,8 +189,8 @@ M.sum.add = function(a1,a2,order){
         return M.sum(Array.prepend(a2.terms,a1));
     }
     // Two values with same unit becomes one single value. Addition! :)
-    if (M.val.compareUnits(a1,a2)){
-        return M.val(a1.val+a2.val,a1.unit);
+    if (a1.type==="val" && a2.type === "val"){
+        return M.val(a1.val+a2.val);
     }
 
     // Default: just merge the two args into a sum
@@ -267,7 +246,6 @@ M.prod.calc = function(prod){
             case "val": 
                 var val,nonNumber;
                 obj.val.map(function(v){
-                    var unit = {};
                     if (!val) {
                         val = v;
                     } else {
@@ -364,21 +342,9 @@ M.prod.multiply = function(a1,a2){
     if (a2.type==="prod"){
         return M.prod(Array.prepend(a2.factors,a1));
     }
-    // Multiplying two values returns a multiplied value with multiplied units
+    // Multiplying two values returns a multiplied value
     if (a1.type==="val" && a2.type==="val"){
-        var unit = {},nonNumber;
-        [a1,a2].map(function(a){
-            for(var u in a.unit){
-                if (u !== "NUMBER"){
-                    nonNumber = true;
-                }
-                unit[u] = (unit[u] ? unit[u] : 0) + a.unit[u];
-            }
-            if (nonNumber){
-                delete unit.NUMBER;
-            }
-        });
-        return M.val(a1.val * a2.val, unit);
+        return M.val(a1.val * a2.val);
     }
     // Multiplying a sum and an item returns a sum with all terms multiplied with the item from the right
     // If the right item is a sum too, we flatten the result one step.
