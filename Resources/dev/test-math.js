@@ -343,6 +343,16 @@ JSpec.describe("Math library",function(){
             expect(x.factors[1].positionInParent).to(be,"inlist");
             expect(x.factors[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The removeOnes function",function(){
+            it("should be defined",function(){
+                expect(M.prod.removeOnes).to(be_a,Function);
+            });
+            it("should return the prod without ones",function(){
+                var arr = [M.val(2),M.val(3),M.val(4)], prod1 = M.prod(arr), prod2 = M.prod(Array.merge(arr,[M.val(1)]));
+                expect(M.prod.removeOnes(prod2)).to(eql,prod1);
+                expect(M.prod.removeOnes(prod1)).to(eql,prod1);
+            });
+        });
         describe("The equal function",function(){
             it("should be defined",function(){
                 expect(M.prod.equal).to(be_a,Function);

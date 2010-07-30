@@ -220,6 +220,16 @@ M.prod.equal = function(p1,p2){
     return !fail;
 }
 
+M.prod.removeOnes = function(prod){
+    var factors = [];
+    prod.factors.map(function(item){
+        if(!(item.type === "val" && item.val === 1)){
+            factors.push(item);
+        }
+    });
+    return M.prod(factors);
+};
+
 M.prod.harvestFactors = function(prod,depth){
     var ret = [];
     if (depth === undefined){
