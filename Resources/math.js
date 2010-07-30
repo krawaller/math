@@ -52,6 +52,7 @@ M.equal = function(a1,a2){
     switch(a1.type){
         case "val": return M.val.equal(a1,a2);
         case "sum": return M.sum.equal(a1,a2);
+        case "prod": return M.prod.equal(a1,a2);
     }
     throw "what the heck!?";
 }
@@ -182,6 +183,48 @@ M.prod = function(arr){
     }
     return ret;
 };
+
+M.prod.equal = function(p1,p2){
+    var found,fail;
+    if (p1.factors.length !== p2.factors.length){
+        return false;
+    }
+    [{tolookfor:p1,tolookin:p2},{tolookfor:p2,tolookin:p1}].map(function(o){
+        o.tolookfor.factors.map(function(a1){
+            found = false;
+            o.tolookin.factors.map(function(a2){
+                if (M.equal(a1,a2)){
+                    found = true;
+                }
+            });
+            if (!found){
+                fail = true;
+                return;
+            }
+        });
+    });
+    return !fail;
+}
+
+M.prod.harvestFactors = function(prod,depth){
+    var ret = [];
+    if (depth === undefined){
+        depth = -1;
+    }
+    prod.factors.map(function(item){
+        if (item.type === "prod" && depth !=0){
+            ret = Array.merge(ret,M.prod.harvestFactors(item,depth-1));
+        }
+        else {
+            ret.push(item);
+        } 
+    });
+    return ret;
+}
+
+M.prod.flattenProduct = function(prod,depth){
+    return M.prod(M.prod.harvestFactors(prod,depth));
+}
 
 M.prod.multiply = function(a1,a2){
     var zero = M.val(0), one = M.val(1);

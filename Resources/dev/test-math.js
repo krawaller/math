@@ -14,9 +14,21 @@ JSpec.describe("Math library",function(){
                 expect(M.equal(M.val(3),M.val(4))).to(be,false);
                 expect(M.equal(M.val(3),M.val(3,"y"))).to(be,false);
             });
-            it("should return true for two equal values",function(){
+            it("should correctly compare values",function(){
                 expect(M.equal(M.val(3),M.val(3))).to(be,true);
                 expect(M.equal(M.val(3,"y"),M.val(3,"y"))).to(be,true);
+                expect(M.equal(M.val(3),M.val(4))).to(be,false);
+                expect(M.equal(M.val(3),M.val(3,"x"))).to(be,false);
+            });
+            it("should correctly compare sums",function(){
+                var arr = [M.val(1),M.val(2,"x")];
+                expect(M.equal(M.sum(arr), M.sum(arr))).to(be,true);
+                expect(M.equal(M.sum(arr), M.sum(Array.merge(arr,[M.val(4)])))).to(be,false);
+            });
+            it("should correctly compare products",function(){
+                var arr = [M.val(1),M.val(2,"x")];
+                expect(M.equal(M.prod(arr), M.prod(arr))).to(be,true);
+                expect(M.equal(M.prod(arr), M.prod(Array.merge(arr,[M.val(4)])))).to(be,false);
             });
         });
     });
@@ -229,7 +241,7 @@ JSpec.describe("Math library",function(){
             it("should be defined",function(){
                 expect(M.sum.equal).to(be_a,Function);
             });
-            it("should return false for two sums with same lengths",function(){
+            it("should return false for two sums with different lengths",function(){
                 var s1 = M.sum([M.val(1),M.val(2),M.val(3)]), s2 = M.sum([M.val(4),M.val(5)]), ret = M.sum.equal(s1,s2);
                 expect(ret).to(be,false);
             });
@@ -328,6 +340,65 @@ JSpec.describe("Math library",function(){
             expect(x.factors[0].positionInParent).to(be,"first");
             expect(x.factors[1].positionInParent).to(be,"inlist");
             expect(x.factors[arr.length-1].positionInParent).to(be,"last");
+        });
+        describe("The equal function",function(){
+            it("should be defined",function(){
+                expect(M.prod.equal).to(be_a,Function);
+            });
+            it("should return false for two prod with different lengths",function(){
+                var p1 = M.prod([M.val(1),M.val(2),M.val(3)]), p2 = M.prod([M.val(4),M.val(5)]), ret = M.prod.equal(p1,p2);
+                expect(ret).to(be,false);
+            });
+            it("should return false for same lengths prods with different elements",function(){
+                var p1 = M.prod([M.val(1),M.val(2)]), p2 = M.prod([M.val(4),M.val(5)]), ret = M.prod.equal(p1,p2);
+                expect(ret).to(be,false);
+            });
+            it("should return true for prods with same elements",function(){
+                var p1 = M.prod([M.val(1),M.val(2)]), p2 = M.prod([M.val(1),M.val(2)]), ret = M.prod.equal(p1,p2);
+                expect(ret).to(be,true);
+            });
+            it("should return true for prods with same elements but different order",function(){
+                var p1 = M.prod([M.val(1),M.val(2)]), p2 = M.prod([M.val(2),M.val(1)]), ret = M.prod.equal(p1,p2);
+                expect(ret).to(be,true);
+            });
+        });
+        describe("The harvestFactors function",function(){
+            it("should be defined",function(){
+                expect(M.prod.harvestFactors).to(be_a,Function);
+            });
+            it("should return an array with all factors",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), ret = M.prod.harvestFactors(prod);
+                expect(ret).to(eql,prod.factors);
+            });
+            it("should also collect from nested prods",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], prod1 = M.prod(arr1), 
+                    arr2 = [M.val(4),M.val(5),prod1], prod2 = M.prod(arr2), ret = M.prod.harvestFactors(prod2);
+                expect(ret.length).to(be,5);
+                expect(M.equal(M.prod(ret),M.prod(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
+            });
+            it("should only collect to the given depth",function(){
+                var prod = M.prod([ M.val(1), M.prod([ M.val(2), M.prod([ M.val(3), M.prod([M.val(4),M.val(5)]) ]) ]) ]);
+                expect(M.prod.harvestFactors(prod,1).length).to(be,3);
+                expect(M.prod.harvestFactors(prod,2).length).to(be,4);
+                expect(M.prod.harvestFactors(prod,0).length).to(be,2);
+            });
+        });
+        describe("The flattenProduct function",function(){
+            it("should be defined",function(){
+                expect(M.prod.flattenProduct).to(be_a,Function);
+            });
+            it("should return product including factors from all contained products",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], prod1 = M.prod(arr1), 
+                    arr2 = [M.val(4),M.val(5),prod1], prod2 = M.prod(arr2), ret = M.prod.flattenProduct(prod2);
+                expect(ret.factors.length).to(be,5);
+                expect(M.equal(ret,M.prod(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
+            });
+            it("should only flatten to the given depth",function(){
+                var prod = M.prod([ M.val(1), M.prod([ M.val(2), M.prod([ M.val(3), M.prod([M.val(4),M.val(5)]) ]) ]) ]);
+                expect(M.prod.flattenProduct(prod,1).factors.length).to(be,3);
+                expect(M.prod.flattenProduct(prod,2).factors.length).to(be,4);
+                expect(M.prod.flattenProduct(prod,0).factors.length).to(be,2);
+            });
         });
         describe("The multiply function",function(){
             it("should be defined",function(){
