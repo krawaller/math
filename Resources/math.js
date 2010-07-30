@@ -66,9 +66,6 @@ M.val = function(val,unit){
     else {
         ret.unit[unit || "NUMBER"] = 1;
     }
-    ret.calc = function(){
-        return ret;
-    }
     return ret;
 };
 
@@ -130,6 +127,13 @@ M.sum.flattenSum = function(sum,depth){
 }
 
 M.sum.add = function(a1,a2){
+    // Adding a zero just returns the other argument
+    if (a1.type === "val" && a1.val === 0){
+        return a2;
+    }
+    if (a2.type === "val" && a2.val === 0){
+        return a1;
+    }
     // Adding two sums should return one single sum including all terms
     if (a1.type==="sum" && a2.type === "sum"){
         return M.sum(Array.merge(a1.terms,a2.terms));

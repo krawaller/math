@@ -120,19 +120,6 @@ JSpec.describe("Math library",function(){
             var unit = {"x":3,"y":1}, x = M.val(7,unit);
             expect(x.unit).to(equal,unit);
         });
-        describe("The calc function",function(){
-            before_each(function(){
-                x = M.val(7);
-            });
-            it("should be defined",function(){
-                expect(x.calc).to(be_a,Function);
-            });
-            it("should return the val/unit object",function(){
-                var res = x.calc();
-                expect(res.val).to(equal,7);
-                expect(res.unit.NUMBER).to(equal,1);
-            });
-        });
         describe("The equal function",function(){
             it("should be defined",function(){
                 expect(M.val.equal).to(be_a,Function);
@@ -261,6 +248,11 @@ JSpec.describe("Math library",function(){
         describe("The adding function",function(){
             it("should be defined",function(){
                 expect(M.sum.add).to(be_a,Function);
+            });
+            it("an argument is 0 (regardless of unit), return the other argument",function(){
+                var item = {type:"foo"};
+                expect(M.sum.add(M.val(0),item)).to(eql,item);
+                expect(M.sum.add(item,M.val(0,"x"))).to(eql,item);
             });
             it("should merge two sums into a new sum with updated annotations",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], arr2 = [M.val(4),M.val(5),M.val(6)],
