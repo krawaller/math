@@ -161,6 +161,14 @@ JSpec.describe("Math library",function(){
                 expect(res.type).to(be,"sum");
                 expect(res.terms.length).to(be,2);
             });
+            it("should merge all equal non-value items into a product",function(){
+                var foo = {type: "foo"}, bar = {type: "bar"}, arr = [M.val(2),M.val(3),foo,foo,foo,bar,foo],
+                    sum = M.sum(arr), res = M.sum.calc(sum);
+                expect(res).to(be_an,Object);
+                expect(res.type).to(be,"sum");
+                expect(res.terms.length).to(be,3);
+                expect( M.equal(res, M.sum([M.val(5),M.prod([M.val(4),foo]),bar])) ).to(be,true);
+            });
         });
         describe("The harvestTerms function",function(){
             it("should be defined",function(){

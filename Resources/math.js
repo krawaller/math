@@ -99,7 +99,7 @@ M.sum.calc = function(sum){
     });
     for(var type in obj){
         switch(type){
-            case "val": 
+            case "val": // Adding all values together into a single value
                 var val;
                 obj.val.map(function(v){
                     if (!val) {
@@ -110,10 +110,23 @@ M.sum.calc = function(sum){
                 });
                 arr.push(val);
                 break;
-            default:
-                var notme = [], found = 0;
-//                obj[type]
-                arr = Array.merge(arr,obj[type]);
+            default: // grouping all equal non-value items together 
+                var found = {}, duplicates = [];
+                for(var i=0;i<obj[type].length;i++){
+                    if (duplicates.indexOf(i)===-1){
+                        found[i] = 1;
+                        for(var j=0;j<obj[type].length;j++){
+                            if (j!=i && M.equal(obj[type][i],obj[type][j])){
+                                duplicates.push(j);
+                                found[i]++;
+                            }
+                        }
+                    }
+                }
+                for(var pos in found){
+                    var item = obj[type][pos], num = found[pos];
+                    arr.push( num > 1 ? M.prod([M.val(num),item]) : item);
+                }
         }
     };
     return M.sum(arr);
