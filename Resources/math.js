@@ -120,11 +120,21 @@ M.sum.harvestTerms = function(sum,depth){
         } 
     });
     return ret;
-}
+};
 
 M.sum.flattenSum = function(sum,depth){
     return M.sum(M.sum.harvestTerms(sum,depth));
-}
+};
+
+M.sum.removeZeroes = function(sum){
+    var terms = [];
+    sum.terms.map(function(item){
+        if(!(item.type === "val" && item.val === 0)){
+            terms.push(item);
+        }
+    });
+    return M.sum(terms);
+};
 
 M.sum.add = function(a1,a2){
     // Adding a zero just returns the other argument

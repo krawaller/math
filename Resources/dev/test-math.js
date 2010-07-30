@@ -224,6 +224,16 @@ JSpec.describe("Math library",function(){
                 expect(M.sum.flattenSum(sum,0).terms.length).to(be,2);
             });
         });
+        describe("The removeZeroes function",function(){
+            it("should be defined",function(){
+                expect(M.sum.removeZeroes).to(be_a,Function);
+            });
+            it("should return the sum without zeroes",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr), sum2 = M.sum(Array.merge(arr,[M.val(0)]));
+                expect(M.sum.removeZeroes(sum2)).to(eql,sum1);
+                expect(M.sum.removeZeroes(sum1)).to(eql,sum1);
+            });
+        });
         describe("The equal function",function(){
             it("should be defined",function(){
                 expect(M.sum.equal).to(be_a,Function);
