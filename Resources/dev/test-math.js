@@ -1,7 +1,23 @@
 JSpec.describe("Math library",function(){
-    describe("The object",function(){
+    describe("The M object",function(){
         it("should be defined",function(){
             expect(M).to(be_an,Object);
+        });
+        describe("The equal function",function(){
+            it("should be defined",function(){
+                expect(M.equal).to(be_a,Function);
+            });
+            it("should return false for two items of different type",function(){
+                expect(M.equal({type:"foo"},{type:"bar"})).to(be,false);
+            });
+            it("should return false for two vals with different value/unit",function(){
+                expect(M.equal(M.val(3),M.val(4))).to(be,false);
+                expect(M.equal(M.val(3),M.val(3,"y"))).to(be,false);
+            });
+            it("should return true for two equal values",function(){
+                expect(M.equal(M.val(3),M.val(3))).to(be,true);
+                expect(M.equal(M.val(3,"y"),M.val(3,"y"))).to(be,true);
+            });
         });
     });
     describe("The helper functions",function(){
@@ -171,6 +187,27 @@ JSpec.describe("Math library",function(){
             expect(x.terms[1].positionInParent).to(be,"inlist");
             expect(x.terms[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The equal function",function(){
+            it("should be defined",function(){
+                expect(M.sum.equal).to(be_a,Function);
+            });
+            it("should return false for two sums with same lengths",function(){
+                var s1 = M.sum([M.val(1),M.val(2),M.val(3)]), s2 = M.sum([M.val(4),M.val(5)]), ret = M.sum.equal(s1,s2);
+                expect(ret).to(be,false);
+            });
+            it("should return false for same lengths sums with different elements",function(){
+                var s1 = M.sum([M.val(1),M.val(2)]), s2 = M.sum([M.val(4),M.val(5)]), ret = M.sum.equal(s1,s2);
+                expect(ret).to(be,false);
+            });
+            it("should return true for sums with same elements",function(){
+                var s1 = M.sum([M.val(1),M.val(2)]), s2 = M.sum([M.val(1),M.val(2)]), ret = M.sum.equal(s1,s2);
+                expect(ret).to(be,true);
+            });
+            it("should return true for sums with same elements but different order",function(){
+                var s1 = M.sum([M.val(1),M.val(2)]), s2 = M.sum([M.val(2),M.val(1)]), ret = M.sum.equal(s1,s2);
+                expect(ret).to(be,true);
+            });
+        });
         describe("The adding function",function(){
             it("should be defined",function(){
                 expect(M.sum.add).to(be_a,Function);
@@ -308,6 +345,9 @@ JSpec.describe("Math library",function(){
                 expect(ret.val).to(be,v1.val * v2.val);
                 expect(ret.unit.g).to(be,v1.unit.g + v2.unit.g);
                 expect(ret.unit.h).to(be,v2.unit.h);
+            });
+            it("should merge a sum and an item into a sum with all terms multiplied with the item",function(){
+                
             });
         });
     });

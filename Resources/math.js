@@ -39,6 +39,24 @@ Array.prepend = function(arr,item){
 
 M = {};
 
+M.equal = function(a1,a2){
+    if (typeof a1 !== "object" && typeof a2 !== "object"){
+        return a1 === a2;
+    }
+    if (typeof a1 !== "object" || typeof a2 !== "object"){
+        return false;
+    }
+    if (a1.type !== a2.type){
+        return false;
+    }
+    switch(a1.type){
+        case "val": return M.val.equal(a1,a2);
+        case "sum": return M.sum.equal(a1,a2);
+    }
+    throw "what the heck!?";
+}
+
+
 M.val = function(val,unit){
     var ret = {type: "val", val:val,unit: {} };
     if (typeof unit === "object") {
@@ -110,6 +128,28 @@ M.sum.add = function(a1,a2){
     // Default: just merge the two args into a sum
     return M.sum([a1,a2]);
 };
+
+M.sum.equal = function(s1,s2){
+    var found,fail;
+    if (s1.terms.length !== s2.terms.length){
+        return false;
+    }
+    [{tolookfor:s1,tolookin:s2},{tolookfor:s2,tolookin:s1}].map(function(o){
+        o.tolookfor.terms.map(function(a1){
+            found = false;
+            o.tolookin.terms.map(function(a2){
+                if (M.equal(a1,a2)){
+                    found = true;
+                }
+            });
+            if (!found){
+                fail = true;
+                return;
+            }
+        });
+    });
+    return !fail;
+}
 
 M.prod = function(arr){
     var ret = {type: "prod",factors: []}, o, num = arr.length;
