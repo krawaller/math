@@ -131,6 +131,9 @@ JSpec.describe("Math library",function(){
             var x = M.sum([]);
             expect(x.terms).to(be_an,Array);
         });
+        it("should not create a sum if not more than 1 item in argument array",function(){
+            expect(M.sum([M.val(3)]).type).to(be,"val");
+        });
         it("should store copies of the value-made argument array in the terms property",function(){
             var arr = [M.val(1),M.val(2),M.val(3)], x = M.sum(arr);
             expect(x.terms[0].val).to(be,arr[0].val);
@@ -144,6 +147,20 @@ JSpec.describe("Math library",function(){
             expect(x.terms[0].positionInParent).to(be,"first");
             expect(x.terms[1].positionInParent).to(be,"inlist");
             expect(x.terms[arr.length-1].positionInParent).to(be,"last");
+        });
+        describe("The calc function",function(){
+            it("should be defined",function(){
+                expect(M.sum.calc).to(be_a,Function);
+            });
+            it("should merge all values into a single value",function(){
+                var arr = [ M.val(2), M.val(3) ], sum = M.sum(arr), res = M.sum.calc( sum );
+                expect(res.type).to(be,"val");
+                expect(res.val).to(be,5);
+                arr.push({type:"foo"});
+                res = M.sum.calc( M.sum( arr) );
+                expect(res.type).to(be,"sum");
+                expect(res.terms.length).to(be,2);
+            });
         });
         describe("The harvestTerms function",function(){
             it("should be defined",function(){
@@ -288,6 +305,9 @@ JSpec.describe("Math library",function(){
             var x = M.prod([]);
             expect(x).to(be_an,Object);
             expect(x.type).to(be,"prod");
+        });
+        it("should not make a product if just 1 item in the array",function(){
+            expect(M.prod([M.val(3)]).type).to(be,"val");
         });
         it("should have a factors array property",function(){
             var x = M.prod([]);

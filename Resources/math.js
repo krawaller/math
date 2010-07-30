@@ -66,14 +66,7 @@ M.calc = function(item){
 
 
 M.val = function(val,unit){
-    var ret = {type: "val", val:val,unit: {} };
-    if (typeof unit === "object") {
-        ret.unit = unit;
-    }
-    else {
-        ret.unit[unit || "NUMBER"] = 1;
-    }
-    return ret;
+    return {type: "val", val:val};
 };
 
 M.val.equal = function(v1,v2){
@@ -81,6 +74,9 @@ M.val.equal = function(v1,v2){
 };
 
 M.sum = function(arr){
+    if (arr.length === 1){
+        return arr[0];
+    }
     var ret = {type: "sum",terms: []}, o, num = arr.length;
     for(var i=0;i<num;i++){
         o = Object.clone(arr[i]);
@@ -115,10 +111,12 @@ M.sum.calc = function(sum){
                 arr.push(val);
                 break;
             default:
+                var notme = [], found = 0;
+//                obj[type]
                 arr = Array.merge(arr,obj[type]);
         }
     };
-    return M.sum.flattenSum(M.sum(arr));
+    return M.sum(arr);
 };
 
 M.sum.harvestTerms = function(sum,depth){
@@ -166,7 +164,7 @@ M.sum.add = function(a1,a2,order){
     // Adding a value to a sum merges it if sum contains value
     if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
         var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
-        sum = M.sum.calc(sum);
+       // sum = M.sum.calc(sum);
         sum.terms.map(function(term){
             if (term.type==="val" && !merged){
                 arr.push( M.sum.add(val,term) );
@@ -222,6 +220,9 @@ M.sum.equal = function(s1,s2){
 
 M.prod = function(arr){
     var ret = {type: "prod",factors: []}, o, num = arr.length;
+    if (num===1){
+        return arr[0];
+    }
     for(var i=0;i<num;i++){
         o = Object.clone(arr[i]);
         o.parentType = "prod";
