@@ -201,8 +201,12 @@ JSpec.describe("Math library",function(){
             });
             it("should add everything inside it",function(){
                 var sum = M.sum([M.val(2),M.val(3,"x"),M.val(4,{y:2}),M.sum([M.val(2,"x"),M.val(3,{y:2})]),M.val(0)]), ret = M.sum.calc(sum);
-                console.log(ret);
                 expect(M.equal(ret,M.sum([ M.val(7,{y:2}),M.val(5,"x"),M.val(2) ]))).to(be,true);
+            });
+            it("should group nonvalues into products if more than one",function(){
+                var foo = {type: "foo"}, bar = {type: "bar"}, sum = M.sum([ M.val(2),foo,foo,bar,foo ]),
+                    ret = M.calc(sum), expected = M.sum([ M.val(2), M.prod([ M.val(3),  ]) ]);
+                expect(M.equal()).to(be,true);
             });
         });
         describe("The harvestTerms function",function(){
@@ -278,7 +282,7 @@ JSpec.describe("Math library",function(){
             it("should be defined",function(){
                 expect(M.sum.add).to(be_a,Function);
             });
-            it("an argument is 0 (regardless of unit), return the other argument",function(){
+            it("should if an argument is 0 (regardless of unit), return the other argument",function(){
                 var item = {type:"foo"};
                 expect(M.sum.add(M.val(0),item)).to(eql,item);
                 expect(M.sum.add(item,M.val(0,"x"))).to(eql,item);
@@ -328,7 +332,7 @@ JSpec.describe("Math library",function(){
             });
             it("should merge a value into a sum if it contains value with same unit",function(){
                 var arr = [M.val(1),M.val(2,"x"),M.val(3)], sum = M.sum(arr), item = M.val(4,"x"),
-                    expected = M.sum([M.val(1),M.val(6,"x"),M.val(3)]);
+                    expected = M.sum([M.val(4),M.val(6,"x")]);
                 expect(M.equal(M.sum.add(sum,item),expected)).to(be,true);
                 expect(M.equal(M.sum.add(item,sum),expected)).to(be,true);
             });
@@ -376,6 +380,26 @@ JSpec.describe("Math library",function(){
                 var arr = [M.val(2),M.val(3),M.val(4)], prod1 = M.prod(arr), prod2 = M.prod(Array.merge(arr,[M.val(1)]));
                 expect(M.prod.removeOnes(prod2)).to(eql,prod1);
                 expect(M.prod.removeOnes(prod1)).to(eql,prod1);
+            });
+        });
+        describe("The calc function",function(){
+            it("should be defined",function(){
+                expect(M.prod.calc).to(be_a,Function);
+            });
+            it("should merge all vals into one",function(){
+                var prod = M.prod([ M.val(2), M.val(3,"x"), M.val(5,{y:2}), M.prod([M.val(7,"y"),{type:"foo"}]), {type:"bar"} ]),
+                    res = M.prod.calc(prod);
+                expect(res).to(be_an,Object);
+                expect(res.type).to(be,"prod");
+                expect(res.factors.length).to(be,3);
+                expect(M.equal(M.prod([M.val(2*3*5*7,{x:1,y:3}),{type:"foo"},{type:"bar"}]),res)).to(be,true);
+            });
+            it("should merge two incompatible values into a prod",function(){
+                var a1 = {type: "foo",val: 666}, a2 = {type: "bar",val: 667}, prod = M.prod([a1,a2]), ret = M.prod.calc(prod);
+                expect(ret).to(be_an,Object);
+                expect(ret.type).to(be,"prod");
+                expect(ret.factors[0].val).to(be,a1.val);
+                expect(ret.factors[1].val).to(be,a2.val);
             });
         });
         describe("The equal function",function(){

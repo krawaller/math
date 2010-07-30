@@ -50,20 +50,17 @@ M.equal = function(a1,a2){
         return false;
     }
     switch(a1.type){
-        case "val": return M.val.equal(a1,a2);
-        case "sum": return M.sum.equal(a1,a2);
-        case "prod": return M.prod.equal(a1,a2);
+        case "foo": return a2.type === "foo";
+        case "bar": return a2.type === "bar";
+        default: return M[a1.type].equal(a1,a2);
     }
-    throw "what the heck!?";
 }
 
 M.calc = function(item){
-    if (typeof item !== "object"){
-        throw "Huh?!";
-    }
-    if (item.type === "val"){
+    if (typeof M[item.type] !== "object" || typeof M[item.type].calc !== "function"){
         return item;
     }
+    return M[item.type].calc(item);
 }
 
 
@@ -117,12 +114,32 @@ M.sum = function(arr){
 };
 
 M.sum.calc = function(sum){
-    var cur;
-    sum = M.sum.removeZeroes(M.sum.flattenSum(sum));
+    var arr = [], obj = {};
+    sum = M.sum.removeZeroes( M.sum.flattenSum( sum ) );
     sum.terms.map(function(item){
-        cur = cur ? M.sum.add(cur,M.calc(item)) : item;
+        if (!obj[item.type]){
+            obj[item.type] = [];
+        }
+        obj[item.type].push(item);
     });
-    return cur;
+    for(var type in obj){
+        switch(type){
+            case "val": 
+                var val;
+                obj.val.map(function(v){
+                    if (!val) {
+                        val = v;
+                    } else {
+                        val = M.sum.add(val,v);
+                    }
+                });
+                arr.push(val);
+                break;
+            default:
+                arr = Array.merge(arr,obj[type]);
+        }
+    };
+    return M.sum.flattenSum(M.sum(arr));
 };
 
 M.sum.harvestTerms = function(sum,depth){
@@ -155,7 +172,7 @@ M.sum.removeZeroes = function(sum){
     return M.sum(terms);
 };
 
-M.sum.add = function(a1,a2){
+M.sum.add = function(a1,a2,order){
     // Adding a zero just returns the other argument
     if (a1.type === "val" && a1.val === 0){
         return a2;
@@ -170,6 +187,7 @@ M.sum.add = function(a1,a2){
     // Adding a value to a sum merges it if sum contains value of same unit
     if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
         var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
+        sum = M.sum.calc(sum);
         sum.terms.map(function(term){
             if (M.val.compareUnits(val,term) && !merged){
                 arr.push( M.sum.add(val,term) );
@@ -195,8 +213,10 @@ M.sum.add = function(a1,a2){
     if (M.val.compareUnits(a1,a2)){
         return M.val(a1.val+a2.val,a1.unit);
     }
+
     // Default: just merge the two args into a sum
     return M.sum([a1,a2]);
+
 };
 
 M.sum.equal = function(s1,s2){
@@ -233,6 +253,40 @@ M.prod = function(arr){
     return ret;
 };
 
+M.prod.calc = function(prod){
+    var arr = [], obj = {};
+    prod = M.prod.removeOnes( M.prod.flattenProduct( prod ) );
+    prod.factors.map(function(item){
+        if (!obj[item.type]){
+            obj[item.type] = [];
+        }
+        obj[item.type].push(item);
+    });
+    for(var type in obj){
+        switch(type){
+            case "val": 
+                var val,nonNumber;
+                obj.val.map(function(v){
+                    var unit = {};
+                    if (!val) {
+                        val = v;
+                    } else {
+                        val = M.prod.multiply(val,v);
+                    }
+                });
+                arr.push(val);
+                break;
+            case "sum": 
+                obj.sum.map(function(s){
+                });
+                break;
+            default:
+                arr = Array.merge(arr,obj[type]);
+        }
+    };
+    return M.prod(arr);
+};
+
 M.prod.equal = function(p1,p2){
     var found,fail;
     if (p1.factors.length !== p2.factors.length){
@@ -253,7 +307,7 @@ M.prod.equal = function(p1,p2){
         });
     });
     return !fail;
-}
+};
 
 M.prod.removeOnes = function(prod){
     var factors = [];
@@ -312,10 +366,16 @@ M.prod.multiply = function(a1,a2){
     }
     // Multiplying two values returns a multiplied value with multiplied units
     if (a1.type==="val" && a2.type==="val"){
-        var unit = {};
+        var unit = {},nonNumber;
         [a1,a2].map(function(a){
             for(var u in a.unit){
+                if (u !== "NUMBER"){
+                    nonNumber = true;
+                }
                 unit[u] = (unit[u] ? unit[u] : 0) + a.unit[u];
+            }
+            if (nonNumber){
+                delete unit.NUMBER;
             }
         });
         return M.val(a1.val * a2.val, unit);
