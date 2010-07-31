@@ -37,7 +37,14 @@ Array.prepend = function(arr,item){
 
 // Library
 
-M = {};
+M = function(){
+    var ret = {type:"base"};
+    ret.constructor = M;
+    ret.id = ++M.objs;
+    return ret;
+};
+
+M.objs = 0;
 
 M.equal = function(a1,a2){
     if (typeof a1 !== "object" && typeof a2 !== "object"){
@@ -65,8 +72,11 @@ M.calc = function(item){
 
 
 
-M.val = function(val,unit){
-    return {type: "val", val:val};
+M.val = function(val){
+    var ret = M();
+    ret.type = "val";
+    ret.val = val;
+    return ret;
 };
 
 M.val.equal = function(v1,v2){
@@ -77,7 +87,9 @@ M.sum = function(arr){
     if (arr.length === 1){
         return arr[0];
     }
-    var ret = {type: "sum",terms: []}, o, num = arr.length;
+    var ret = M(), o, num = arr.length;
+    ret.type = "sum";
+    ret.terms = [];
     for(var i=0;i<num;i++){
         o = Object.clone(arr[i]);
         o.parentType = "sum";
@@ -232,7 +244,9 @@ M.sum.equal = function(s1,s2){
 }
 
 M.prod = function(arr){
-    var ret = {type: "prod",factors: []}, o, num = arr.length;
+    var ret = M(), o, num = arr.length;
+    ret.type = "prod";
+    ret.factors = [];
     if (num===1){
         return arr[0];
     }
@@ -257,7 +271,7 @@ M.prod.calc = function(prod){
     });
     for(var type in obj){
         switch(type){
-            case "val": 
+            case "val": // multiplying all values together
                 var val,nonNumber;
                 obj.val.map(function(v){
                     if (!val) {
@@ -268,7 +282,7 @@ M.prod.calc = function(prod){
                 });
                 arr.push(val);
                 break;
-            case "sum": 
+            case "sum": // multiplying all sums with each other
                 obj.sum.map(function(s){
                 });
                 break;
