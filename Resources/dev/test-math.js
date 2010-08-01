@@ -11,7 +11,6 @@ JSpec.describe("Math library",function(){
         });
         it("should set a unique id on each object",function(){
             var o1 = M(), o2 = M();
-            console.log(o1);
             expect(o1.id).to(be_a,Number);
             expect(o1.id>0).to(be,true);
             expect(o2.id>o1.id).to(be,true);
@@ -46,6 +45,32 @@ JSpec.describe("Math library",function(){
                 var val = M.val(32);
                 expect(M.calc(val)).to(eql,val);
             });
+        });
+    });
+    describe("The M.collection abstract class constructor",function(){
+        it("should be defined",function(){
+            expect(M.collection).to(be_a,Function);
+        });
+        it("should be a constructor, using the type in the arg object",function(){
+            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            expect(col).to(be_an,M);
+            expect(col.type).to(be,"test");
+            expect(col.constructor).to(be,M);
+        });
+        it("should not create a collection if just 1 item in argument array",function(){
+            expect(M.collection({items:[M.val(3)]}).type).to(be,"val");
+        });
+        it("should store copies of the value-made argument array in the items property",function(){
+            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            expect(col.items[0].val).to(be,arr[0].val);
+            expect(col.items[0] === arr[0]).to(be,false);
+        });
+        it("should annotate the included objects",function(){
+            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            expect(col.items[0].parentType).to(be,"test");
+            expect(col.items[0].positionInParent).to(be,"first");
+            expect(col.items[1].positionInParent).to(be,1);
+            expect(col.items[arr.length-1].positionInParent).to(be,"last");
         });
     });
     describe("The helper functions",function(){

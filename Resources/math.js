@@ -83,6 +83,22 @@ M.val.equal = function(v1,v2){
     return v1.val === v2.val;
 };
 
+M.collection = function(arg){
+    if (arg.items.length === 1){
+        return arg.items[0];
+    }
+    var ret = M(),num = arg.items.length;
+    ret.type = arg.type;
+    ret.items = [];
+    for(var i=0;i<num;i++){
+        o = Object.clone(arg.items[i]);
+        o.parentType = arg.type;
+        o.positionInParent = !i ? "first" : i === num - 1 ? "last" : i;
+        ret.items.push(o);
+    }
+    return ret;
+};
+
 M.sum = function(arr){
     if (arr.length === 1){
         return arr[0];
