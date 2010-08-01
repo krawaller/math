@@ -72,6 +72,27 @@ JSpec.describe("Math library",function(){
             expect(col.items[1].positionInParent).to(be,1);
             expect(col.items[arr.length-1].positionInParent).to(be,"last");
         });
+        describe("The harvestItems function",function(){
+            it("should be defined",function(){
+                expect(M.collection.harvestItems).to(be_a,Function);
+            });
+            it("should return an array with all terms",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.collection.harvestItems(sum);
+                expect(ret).to(eql,sum.items);
+            });
+            it("should also collect from nested sums",function(){
+                var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
+                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.collection.harvestItems(sum2);
+                expect(ret.length).to(be,5);
+                expect(M.equal(M.sum(ret),M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
+            });
+            it("should only collect to the given depth",function(){
+                var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
+                expect(M.collection.harvestItems(sum,1).length).to(be,3);
+                expect(M.collection.harvestItems(sum,2).length).to(be,4);
+                expect(M.collection.harvestItems(sum,0).length).to(be,2);
+            });
+        });
     });
     describe("The helper functions",function(){
         describe("Object clone",function(){
@@ -216,27 +237,6 @@ JSpec.describe("Math library",function(){
                 expect(res.type).to(be,"sum");
                 expect(res.items.length).to(be,3);
                 expect( M.equal(res, M.sum([M.val(5),M.prod([M.val(4),foo]),bar])) ).to(be,true);
-            });
-        });
-        describe("The harvestTerms function",function(){
-            it("should be defined",function(){
-                expect(M.sum.harvestTerms).to(be_a,Function);
-            });
-            it("should return an array with all terms",function(){
-                var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.sum.harvestTerms(sum);
-                expect(ret).to(eql,sum.items);
-            });
-            it("should also collect from nested sums",function(){
-                var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
-                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.sum.harvestTerms(sum2);
-                expect(ret.length).to(be,5);
-                expect(M.equal(M.sum(ret),M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
-            });
-            it("should only collect to the given depth",function(){
-                var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
-                expect(M.sum.harvestTerms(sum,1).length).to(be,3);
-                expect(M.sum.harvestTerms(sum,2).length).to(be,4);
-                expect(M.sum.harvestTerms(sum,0).length).to(be,2);
             });
         });
         describe("The flattenSum function",function(){
@@ -438,27 +438,6 @@ JSpec.describe("Math library",function(){
             it("should return true for prods with same elements but different order",function(){
                 var p1 = M.prod([M.val(1),M.val(2)]), p2 = M.prod([M.val(2),M.val(1)]), ret = M.prod.equal(p1,p2);
                 expect(ret).to(be,true);
-            });
-        });
-        describe("The harvestFactors function",function(){
-            it("should be defined",function(){
-                expect(M.prod.harvestFactors).to(be_a,Function);
-            });
-            it("should return an array with all factors",function(){
-                var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), ret = M.prod.harvestFactors(prod);
-                expect(ret).to(eql,prod.items);
-            });
-            it("should also collect from nested prods",function(){
-                var arr1 = [M.val(1),M.val(2),M.val(3)], prod1 = M.prod(arr1), 
-                    arr2 = [M.val(4),M.val(5),prod1], prod2 = M.prod(arr2), ret = M.prod.harvestFactors(prod2);
-                expect(ret.length).to(be,5);
-                expect(M.equal(M.prod(ret),M.prod(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
-            });
-            it("should only collect to the given depth",function(){
-                var prod = M.prod([ M.val(1), M.prod([ M.val(2), M.prod([ M.val(3), M.prod([M.val(4),M.val(5)]) ]) ]) ]);
-                expect(M.prod.harvestFactors(prod,1).length).to(be,3);
-                expect(M.prod.harvestFactors(prod,2).length).to(be,4);
-                expect(M.prod.harvestFactors(prod,0).length).to(be,2);
             });
         });
         describe("The flattenProduct function",function(){

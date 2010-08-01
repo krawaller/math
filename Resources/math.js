@@ -99,6 +99,54 @@ M.collection = function(arg){
     return ret;
 };
 
+M.collection.harvestItems = function(col,depth){
+    var ret = [];
+    if (depth === undefined){
+        depth = -1;
+    }
+    col.items.map(function(item){
+        if (item.type === col.type && depth !=0){
+            ret = Array.merge(ret,M.collection.harvestItems(item,depth-1));
+        }
+        else {
+            ret.push(item);
+        } 
+    });
+    return ret;
+};
+
+M.collection.removeItem = function(col,unwanted){
+    var items = [];
+    col.items.map(function(item){
+        if(!(M.equal(item,unwanted))){
+            items.push(item);
+        }
+    });
+    return M[col.type](items); 
+};
+
+M.collection.equal = function(s1,s2){
+    var found,fail;
+    if (s1.items.length !== s2.items.length){
+        return false;
+    }
+    [{tolookfor:s1,tolookin:s2},{tolookfor:s2,tolookin:s1}].map(function(o){
+        o.tolookfor.items.map(function(a1){
+            found = false;
+            o.tolookin.items.map(function(a2){
+                if (M.equal(a1,a2)){
+                    found = true;
+                }
+            });
+            if (!found){
+                fail = true;
+                return;
+            }
+        });
+    });
+    return !fail;
+}
+
 M.sum = function(arr){
     return M.collection({items:arr,type:"sum"});
 };
@@ -147,27 +195,12 @@ M.sum.calc = function(sum){
     return M.sum(arr);
 };
 
-M.sum.harvestTerms = function(sum,depth){
-    var ret = [];
-    if (depth === undefined){
-        depth = -1;
-    }
-    sum.items.map(function(item){
-        if (item.type === "sum" && depth !=0){
-            ret = Array.merge(ret,M.sum.harvestTerms(item,depth-1));
-        }
-        else {
-            ret.push(item);
-        } 
-    });
-    return ret;
-};
-
 M.sum.flattenSum = function(sum,depth){
-    return M.sum(M.sum.harvestTerms(sum,depth));
+    return M.sum( M.collection.harvestItems(sum,depth) );    //M.sum.harvestTerms(sum,depth));
 };
 
 M.sum.removeZeroes = function(sum){
+    return M.collection.removeItem(sum,M.val(0));
     var terms = [];
     sum.items.map(function(item){
         if(!(item.type === "val" && item.val === 0)){
@@ -225,25 +258,7 @@ M.sum.add = function(a1,a2,order){
 };
 
 M.sum.equal = function(s1,s2){
-    var found,fail;
-    if (s1.items.length !== s2.items.length){
-        return false;
-    }
-    [{tolookfor:s1,tolookin:s2},{tolookfor:s2,tolookin:s1}].map(function(o){
-        o.tolookfor.items.map(function(a1){
-            found = false;
-            o.tolookin.items.map(function(a2){
-                if (M.equal(a1,a2)){
-                    found = true;
-                }
-            });
-            if (!found){
-                fail = true;
-                return;
-            }
-        });
-    });
-    return !fail;
+    return M.collection.equal(s1,s2);
 }
 
 M.prod = function(arr){
@@ -284,55 +299,15 @@ M.prod.calc = function(prod){
 };
 
 M.prod.equal = function(p1,p2){
-    var found,fail;
-    if (p1.items.length !== p2.items.length){
-        return false;
-    }
-    [{tolookfor:p1,tolookin:p2},{tolookfor:p2,tolookin:p1}].map(function(o){
-        o.tolookfor.items.map(function(a1){
-            found = false;
-            o.tolookin.items.map(function(a2){
-                if (M.equal(a1,a2)){
-                    found = true;
-                }
-            });
-            if (!found){
-                fail = true;
-                return;
-            }
-        });
-    });
-    return !fail;
+    return M.collection.equal(p1,p2);
 };
 
 M.prod.removeOnes = function(prod){
-    var factors = [];
-    prod.items.map(function(item){
-        if(!(item.type === "val" && item.val === 1)){
-            factors.push(item);
-        }
-    });
-    return M.prod(factors);
+    return M.collection.removeItem(prod,M.val(1));
 };
 
-M.prod.harvestFactors = function(prod,depth){
-    var ret = [];
-    if (depth === undefined){
-        depth = -1;
-    }
-    prod.items.map(function(item){
-        if (item.type === "prod" && depth !=0){
-            ret = Array.merge(ret,M.prod.harvestFactors(item,depth-1));
-        }
-        else {
-            ret.push(item);
-        } 
-    });
-    return ret;
-}
-
 M.prod.flattenProduct = function(prod,depth){
-    return M.prod(M.prod.harvestFactors(prod,depth));
+    return M.prod( M.collection.harvestItems(prod,depth) );
 }
 
 M.prod.multiply = function(a1,a2){
