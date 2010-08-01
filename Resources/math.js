@@ -1,5 +1,5 @@
 
-// Helper methods
+// ************************************ Helper methods *********************************
 
 Object.clone = function(obj){
     if (typeof(obj) != "object"){
@@ -35,7 +35,7 @@ Array.prepend = function(arr,item){
 }
 
 
-// Library
+// ************************************ M abstract baseclass ************************************
 
 M = function(){
     var ret = {type:"base"};
@@ -70,18 +70,7 @@ M.calc = function(item){
     return M[item.type].calc(item);
 }
 
-
-
-M.val = function(val){
-    var ret = M();
-    ret.type = "val";
-    ret.val = val;
-    return ret;
-};
-
-M.val.equal = function(v1,v2){
-    return v1.val === v2.val;
-};
+// *************************** Collection abstract class methods ******************************
 
 M.collection = function(arg){
     if (arg.items.length === 1){
@@ -146,6 +135,22 @@ M.collection.equal = function(s1,s2){
     });
     return !fail;
 }
+
+
+// ************************************ Value class *****************************************
+
+M.val = function(val){
+    var ret = M();
+    ret.type = "val";
+    ret.val = val;
+    return ret;
+};
+
+M.val.equal = function(v1,v2){
+    return v1.val === v2.val;
+};
+
+// ************************************ Sum class *******************************************
 
 M.sum = function(arr){
     return M.collection({items:arr,type:"sum"});
@@ -260,6 +265,8 @@ M.sum.add = function(a1,a2,order){
 M.sum.equal = function(s1,s2){
     return M.collection.equal(s1,s2);
 }
+
+// ********************************* Product class *****************************************
 
 M.prod = function(arr){
     return M.collection({items:arr,type:"prod"});
