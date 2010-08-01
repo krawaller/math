@@ -100,26 +100,13 @@ M.collection = function(arg){
 };
 
 M.sum = function(arr){
-    if (arr.length === 1){
-        return arr[0];
-    }
-    var ret = M(), o, num = arr.length;
-    ret.type = "sum";
-    ret.terms = [];
-    for(var i=0;i<num;i++){
-        o = Object.clone(arr[i]);
-        o.parentType = "sum";
-        o.roleInParent = "term";
-        o.positionInParent = !i ? "first" : i === num - 1 ? "last" : "inlist";
-        ret.terms.push(o);
-    }
-    return ret;
+    return M.collection({items:arr,type:"sum"});
 };
 
 M.sum.calc = function(sum){
     var arr = [], obj = {};
     sum = M.sum.removeZeroes( M.sum.flattenSum( sum ) );
-    sum.terms.map(function(item){
+    sum.items.map(function(item){
         if (!obj[item.type]){
             obj[item.type] = [];
         }
@@ -165,7 +152,7 @@ M.sum.harvestTerms = function(sum,depth){
     if (depth === undefined){
         depth = -1;
     }
-    sum.terms.map(function(item){
+    sum.items.map(function(item){
         if (item.type === "sum" && depth !=0){
             ret = Array.merge(ret,M.sum.harvestTerms(item,depth-1));
         }
@@ -182,7 +169,7 @@ M.sum.flattenSum = function(sum,depth){
 
 M.sum.removeZeroes = function(sum){
     var terms = [];
-    sum.terms.map(function(item){
+    sum.items.map(function(item){
         if(!(item.type === "val" && item.val === 0)){
             terms.push(item);
         }
@@ -200,13 +187,13 @@ M.sum.add = function(a1,a2,order){
     }
     // Adding two sums should return one single sum including all terms
     if (a1.type==="sum" && a2.type === "sum"){
-        return M.sum(Array.merge(a1.terms,a2.terms));
+        return M.sum(Array.merge(a1.items,a2.items));
     }
     // Adding a value to a sum merges it if sum contains value
     if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
         var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
        // sum = M.sum.calc(sum);
-        sum.terms.map(function(term){
+        sum.items.map(function(term){
             if (term.type==="val" && !merged){
                 arr.push( M.sum.add(val,term) );
                 merged = true;
@@ -221,11 +208,11 @@ M.sum.add = function(a1,a2,order){
     }
     // Adding a sum and an item returns one single sum with that item at the end
     if (a1.type==="sum"){
-        return M.sum(Array.append(a1.terms,a2));
+        return M.sum(Array.append(a1.items,a2));
     }
     // Adding an item and a sum returns one single sum with that item at the beginning
     if (a2.type==="sum"){
-        return M.sum(Array.prepend(a2.terms,a1));
+        return M.sum(Array.prepend(a2.items,a1));
     }
     // Two values with same unit becomes one single value. Addition! :)
     if (a1.type==="val" && a2.type === "val"){
@@ -239,13 +226,13 @@ M.sum.add = function(a1,a2,order){
 
 M.sum.equal = function(s1,s2){
     var found,fail;
-    if (s1.terms.length !== s2.terms.length){
+    if (s1.items.length !== s2.items.length){
         return false;
     }
     [{tolookfor:s1,tolookin:s2},{tolookfor:s2,tolookin:s1}].map(function(o){
-        o.tolookfor.terms.map(function(a1){
+        o.tolookfor.items.map(function(a1){
             found = false;
-            o.tolookin.terms.map(function(a2){
+            o.tolookin.items.map(function(a2){
                 if (M.equal(a1,a2)){
                     found = true;
                 }
@@ -260,26 +247,13 @@ M.sum.equal = function(s1,s2){
 }
 
 M.prod = function(arr){
-    var ret = M(), o, num = arr.length;
-    ret.type = "prod";
-    ret.factors = [];
-    if (num===1){
-        return arr[0];
-    }
-    for(var i=0;i<num;i++){
-        o = Object.clone(arr[i]);
-        o.parentType = "prod";
-        o.roleInParent = "factor";
-        o.positionInParent = !i ? "first" : i === num - 1 ? "last" : "inlist";
-        ret.factors.push(o);
-    }
-    return ret;
+    return M.collection({items:arr,type:"prod"});
 };
 
 M.prod.calc = function(prod){
     var arr = [], obj = {};
     prod = M.prod.removeOnes( M.prod.flattenProduct( prod ) );
-    prod.factors.map(function(item){
+    prod.items.map(function(item){
         if (!obj[item.type]){
             obj[item.type] = [];
         }
@@ -311,13 +285,13 @@ M.prod.calc = function(prod){
 
 M.prod.equal = function(p1,p2){
     var found,fail;
-    if (p1.factors.length !== p2.factors.length){
+    if (p1.items.length !== p2.items.length){
         return false;
     }
     [{tolookfor:p1,tolookin:p2},{tolookfor:p2,tolookin:p1}].map(function(o){
-        o.tolookfor.factors.map(function(a1){
+        o.tolookfor.items.map(function(a1){
             found = false;
-            o.tolookin.factors.map(function(a2){
+            o.tolookin.items.map(function(a2){
                 if (M.equal(a1,a2)){
                     found = true;
                 }
@@ -333,7 +307,7 @@ M.prod.equal = function(p1,p2){
 
 M.prod.removeOnes = function(prod){
     var factors = [];
-    prod.factors.map(function(item){
+    prod.items.map(function(item){
         if(!(item.type === "val" && item.val === 1)){
             factors.push(item);
         }
@@ -346,7 +320,7 @@ M.prod.harvestFactors = function(prod,depth){
     if (depth === undefined){
         depth = -1;
     }
-    prod.factors.map(function(item){
+    prod.items.map(function(item){
         if (item.type === "prod" && depth !=0){
             ret = Array.merge(ret,M.prod.harvestFactors(item,depth-1));
         }
@@ -376,15 +350,15 @@ M.prod.multiply = function(a1,a2){
     }
     // Multiplying two prods should return one single prod with all factors
     if (a1.type==="prod" && a2.type === "prod"){
-        return M.prod(Array.merge(a1.factors,a2.factors));
+        return M.prod(Array.merge(a1.items,a2.items));
     }
     // Multiplying a prod and an item returns one single prod with that item at the end
     if (a1.type==="prod"){
-        return M.prod(Array.append(a1.factors,a2));
+        return M.prod(Array.append(a1.items,a2));
     }
     // Multiplying an item and a prod returns one single prod with that item at the beginning
     if (a2.type==="prod"){
-        return M.prod(Array.prepend(a2.factors,a1));
+        return M.prod(Array.prepend(a2.items,a1));
     }
     // Multiplying two values returns a multiplied value
     if (a1.type==="val" && a2.type==="val"){
@@ -394,7 +368,7 @@ M.prod.multiply = function(a1,a2){
     // If the right item is a sum too, we flatten the result one step.
     if (a1.type==="sum"){
         var arr = [];
-        a1.terms.map(function(term){
+        a1.items.map(function(term){
             arr.push(M.prod.multiply(term,a2));
         });
         return a2.type === "sum" ? M.sum.flattenSum( M.sum(arr), 1) : M.sum(arr);
@@ -402,7 +376,7 @@ M.prod.multiply = function(a1,a2){
     // Multiplying an item and a sum returns a sum with all terms multiplied with the item from the left
     if (a2.type==="sum"){
         var arr = [];
-        a2.terms.map(function(term){
+        a2.items.map(function(term){
             arr.push(M.prod.multiply(a1,term));
         });
         return M.sum(arr);

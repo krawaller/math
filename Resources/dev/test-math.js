@@ -178,24 +178,23 @@ JSpec.describe("Math library",function(){
         });
         it("should have a terms array property",function(){
             var x = M.sum([]);
-            expect(x.terms).to(be_an,Array);
+            expect(x.items).to(be_an,Array);
         });
         it("should not create a sum if not more than 1 item in argument array",function(){
             expect(M.sum([M.val(3)]).type).to(be,"val");
         });
         it("should store copies of the value-made argument array in the terms property",function(){
             var arr = [M.val(1),M.val(2),M.val(3)], x = M.sum(arr);
-            expect(x.terms[0].val).to(be,arr[0].val);
-            expect(x.terms[0].unit).to(eql,arr[0].unit);
-            expect(x.terms[0] === arr[0]).to(be,false);
+            expect(x.items[0].val).to(be,arr[0].val);
+            expect(x.items[0].unit).to(eql,arr[0].unit);
+            expect(x.items[0] === arr[0]).to(be,false);
         });
         it("should annotate the included objects",function(){
             var arr = [M.val(1),M.val(2),M.val(3)], x = M.sum(arr);
-            expect(x.terms[0].parentType).to(be,"sum");
-            expect(x.terms[0].roleInParent).to(be,"term");
-            expect(x.terms[0].positionInParent).to(be,"first");
-            expect(x.terms[1].positionInParent).to(be,"inlist");
-            expect(x.terms[arr.length-1].positionInParent).to(be,"last");
+            expect(x.items[0].parentType).to(be,"sum");
+            expect(x.items[0].positionInParent).to(be,"first");
+            expect(x.items[1].positionInParent).to(be,1);
+            expect(x.items[arr.length-1].positionInParent).to(be,"last");
         });
         describe("The calc function",function(){
             it("should be defined",function(){
@@ -208,14 +207,14 @@ JSpec.describe("Math library",function(){
                 arr.push({type:"foo"});
                 res = M.sum.calc( M.sum( arr) );
                 expect(res.type).to(be,"sum");
-                expect(res.terms.length).to(be,2);
+                expect(res.items.length).to(be,2);
             });
             it("should merge all equal non-value items into a product",function(){
                 var foo = {type: "foo"}, bar = {type: "bar"}, arr = [M.val(2),M.val(3),foo,foo,foo,bar,foo],
                     sum = M.sum(arr), res = M.sum.calc(sum);
                 expect(res).to(be_an,M);
                 expect(res.type).to(be,"sum");
-                expect(res.terms.length).to(be,3);
+                expect(res.items.length).to(be,3);
                 expect( M.equal(res, M.sum([M.val(5),M.prod([M.val(4),foo]),bar])) ).to(be,true);
             });
         });
@@ -225,7 +224,7 @@ JSpec.describe("Math library",function(){
             });
             it("should return an array with all terms",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.sum.harvestTerms(sum);
-                expect(ret).to(eql,sum.terms);
+                expect(ret).to(eql,sum.items);
             });
             it("should also collect from nested sums",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
@@ -247,14 +246,14 @@ JSpec.describe("Math library",function(){
             it("should return sum including terms from all contained sums",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
                     arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.sum.flattenSum(sum2);
-                expect(ret.terms.length).to(be,5);
+                expect(ret.items.length).to(be,5);
                 expect(M.equal(ret,M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
             });
             it("should only flatten to the given depth",function(){
                 var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
-                expect(M.sum.flattenSum(sum,1).terms.length).to(be,3);
-                expect(M.sum.flattenSum(sum,2).terms.length).to(be,4);
-                expect(M.sum.flattenSum(sum,0).terms.length).to(be,2);
+                expect(M.sum.flattenSum(sum,1).items.length).to(be,3);
+                expect(M.sum.flattenSum(sum,2).items.length).to(be,4);
+                expect(M.sum.flattenSum(sum,0).items.length).to(be,2);
             });
         });
         describe("The removeZeroes function",function(){
@@ -302,43 +301,43 @@ JSpec.describe("Math library",function(){
                     s1 = M.sum(arr1), s2 = M.sum(arr2), ret = M.sum.add(s1,s2);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms.length).to(be,arr1.length+arr2.length);
-                expect(ret.terms[0].val).to(be,arr1[0].val);
-                expect(ret.terms[arr1.length-1].val).to(be,arr1[arr1.length-1].val);
-                expect(ret.terms[arr1.length].val).to(be,arr2[0].val);
-                expect(ret.terms[ret.terms.length-1].val).to(be,arr2[arr2.length-1].val);
-                expect(ret.terms[arr1.length-1].positionInParent).to(be,"inlist");
-                expect(ret.terms[arr1.length].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr1.length+arr2.length);
+                expect(ret.items[0].val).to(be,arr1[0].val);
+                expect(ret.items[arr1.length-1].val).to(be,arr1[arr1.length-1].val);
+                expect(ret.items[arr1.length].val).to(be,arr2[0].val);
+                expect(ret.items[ret.items.length-1].val).to(be,arr2[arr2.length-1].val);
+                expect(ret.items[arr1.length-1].positionInParent).to(be,arr1.length-1);
+                expect(ret.items[arr1.length].positionInParent).to(be,arr1.length);
             });
             it("should merge two incompatible items into a sum",function(){
                 var a1 = {type: "testobj",val: 666}, a2 = {type: "testobj2",val: 667}, ret = M.sum.add(a1,a2);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms[0].val).to(be,a1.val);
-                expect(ret.terms[1].val).to(be,a2.val);
+                expect(ret.items[0].val).to(be,a1.val);
+                expect(ret.items[1].val).to(be,a2.val);
             });
             it("should merge a sum and an item into a sum with updated annotations and the item at the end",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), 
                     item = {type: "testobj",val: 666}, ret = M.sum.add(sum,item);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms.length).to(be,arr.length+1);
-                expect(ret.terms[arr.length].val).to(be,item.val);
-                expect(ret.terms[arr.length].positionInParent).to(be,"last");
-                expect(ret.terms[arr.length-1].val).to(be,arr[arr.length-1].val);
-                expect(ret.terms[arr.length-1].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr.length+1);
+                expect(ret.items[arr.length].val).to(be,item.val);
+                expect(ret.items[arr.length].positionInParent).to(be,"last");
+                expect(ret.items[arr.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.items[arr.length-1].positionInParent).to(be,arr.length-1);
             });
             it("should merge an item and a sum into a sum with updated annotations and the item at the beginning",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), 
                     item = {type: "testobj",val: 666}, ret = M.sum.add(item,sum);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms.length).to(be,arr.length+1);
-                expect(ret.terms[0].val).to(be,item.val);
-                expect(ret.terms[0].positionInParent).to(be,"first");
-                expect(ret.terms[1].val).to(be,arr[0].val);
-                expect(ret.terms[ret.terms.length-1].val).to(be,arr[arr.length-1].val);
-                expect(ret.terms[1].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr.length+1);
+                expect(ret.items[0].val).to(be,item.val);
+                expect(ret.items[0].positionInParent).to(be,"first");
+                expect(ret.items[1].val).to(be,arr[0].val);
+                expect(ret.items[ret.items.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.items[1].positionInParent).to(be,1);
             });
             it("should merge a value into a sum if it already contains a value",function(){
                 var arr = [M.val(3),{type:"foo"}], sum = M.sum(arr), item = M.val(4),
@@ -375,21 +374,20 @@ JSpec.describe("Math library",function(){
         });
         it("should have a factors array property",function(){
             var x = M.prod([]);
-            expect(x.factors).to(be_an,Array);
+            expect(x.items).to(be_an,Array);
         });
         it("should store copies of the value-made argument array in the factors property",function(){
             var arr = [M.val(1),M.val(2),M.val(3)], x = M.prod(arr);
-            expect(x.factors[0].val).to(be,arr[0].val);
-            expect(x.factors[0].unit).to(eql,arr[0].unit);
-            expect(x.factors[0] === arr[0]).to(be,false);
+            expect(x.items[0].val).to(be,arr[0].val);
+            expect(x.items[0].unit).to(eql,arr[0].unit);
+            expect(x.items[0] === arr[0]).to(be,false);
         });
         it("should annotate the included objects",function(){
             var arr = [M.val(1),M.val(2),M.val(3)], x = M.prod(arr);
-            expect(x.factors[0].parentType).to(be,"prod");
-            expect(x.factors[0].roleInParent).to(be,"factor");
-            expect(x.factors[0].positionInParent).to(be,"first");
-            expect(x.factors[1].positionInParent).to(be,"inlist");
-            expect(x.factors[arr.length-1].positionInParent).to(be,"last");
+            expect(x.items[0].parentType).to(be,"prod");
+            expect(x.items[0].positionInParent).to(be,"first");
+            expect(x.items[1].positionInParent).to(be,1);
+            expect(x.items[arr.length-1].positionInParent).to(be,"last");
         });
         describe("The removeOnes function",function(){
             it("should be defined",function(){
@@ -410,15 +408,15 @@ JSpec.describe("Math library",function(){
                     res = M.prod.calc(prod);
                 expect(res).to(be_an,M);
                 expect(res.type).to(be,"prod");
-                expect(res.factors.length).to(be,3);
+                expect(res.items.length).to(be,3);
                 expect(M.equal(M.prod([M.val(2*3*5*7),{type:"foo"},{type:"bar"}]),res)).to(be,true);
             });
             it("should merge two incompatible values into a prod",function(){
                 var a1 = {type: "foo",val: 666}, a2 = {type: "bar",val: 667}, prod = M.prod([a1,a2]), ret = M.prod.calc(prod);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"prod");
-                expect(ret.factors[0].val).to(be,a1.val);
-                expect(ret.factors[1].val).to(be,a2.val);
+                expect(ret.items[0].val).to(be,a1.val);
+                expect(ret.items[1].val).to(be,a2.val);
             });
         });
         describe("The equal function",function(){
@@ -448,7 +446,7 @@ JSpec.describe("Math library",function(){
             });
             it("should return an array with all factors",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), ret = M.prod.harvestFactors(prod);
-                expect(ret).to(eql,prod.factors);
+                expect(ret).to(eql,prod.items);
             });
             it("should also collect from nested prods",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], prod1 = M.prod(arr1), 
@@ -470,14 +468,14 @@ JSpec.describe("Math library",function(){
             it("should return product including factors from all contained products",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], prod1 = M.prod(arr1), 
                     arr2 = [M.val(4),M.val(5),prod1], prod2 = M.prod(arr2), ret = M.prod.flattenProduct(prod2);
-                expect(ret.factors.length).to(be,5);
+                expect(ret.items.length).to(be,5);
                 expect(M.equal(ret,M.prod(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
             });
             it("should only flatten to the given depth",function(){
                 var prod = M.prod([ M.val(1), M.prod([ M.val(2), M.prod([ M.val(3), M.prod([M.val(4),M.val(5)]) ]) ]) ]);
-                expect(M.prod.flattenProduct(prod,1).factors.length).to(be,3);
-                expect(M.prod.flattenProduct(prod,2).factors.length).to(be,4);
-                expect(M.prod.flattenProduct(prod,0).factors.length).to(be,2);
+                expect(M.prod.flattenProduct(prod,1).items.length).to(be,3);
+                expect(M.prod.flattenProduct(prod,2).items.length).to(be,4);
+                expect(M.prod.flattenProduct(prod,0).items.length).to(be,2);
             });
         });
         describe("The multiply function",function(){
@@ -488,44 +486,44 @@ JSpec.describe("Math library",function(){
                 var a1 = {type: "testobj",val: 666}, a2 = {type: "testobj2",val: 667}, ret = M.prod.multiply(a1,a2);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"prod");
-                expect(ret.factors[0].val).to(be,a1.val);
-                expect(ret.factors[1].val).to(be,a2.val);
+                expect(ret.items[0].val).to(be,a1.val);
+                expect(ret.items[1].val).to(be,a2.val);
             });
             it("should merge two prods into a new prod with updated annotations",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], arr2 = [M.val(4),M.val(5),M.val(6)],
                     p1 = M.prod(arr1), p2 = M.prod(arr2), ret = M.prod.multiply(p1,p2);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"prod");
-                expect(ret.factors.length).to(be,arr1.length+arr2.length);
-                expect(ret.factors[0].val).to(be,arr1[0].val);
-                expect(ret.factors[arr1.length-1].val).to(be,arr1[arr1.length-1].val);
-                expect(ret.factors[arr1.length].val).to(be,arr2[0].val);
-                expect(ret.factors[ret.factors.length-1].val).to(be,arr2[arr2.length-1].val);
-                expect(ret.factors[arr1.length-1].positionInParent).to(be,"inlist");
-                expect(ret.factors[arr1.length].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr1.length+arr2.length);
+                expect(ret.items[0].val).to(be,arr1[0].val);
+                expect(ret.items[arr1.length-1].val).to(be,arr1[arr1.length-1].val);
+                expect(ret.items[arr1.length].val).to(be,arr2[0].val);
+                expect(ret.items[ret.items.length-1].val).to(be,arr2[arr2.length-1].val);
+                expect(ret.items[arr1.length-1].positionInParent).to(be,arr1.length-1);
+                expect(ret.items[arr1.length].positionInParent).to(be,arr1.length);
             });
             it("should merge a prod and an item into a prod with updated annotations and the item at the end",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), 
                     item = {type: "testobj",val: 666}, ret = M.prod.multiply(prod,item);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"prod");
-                expect(ret.factors.length).to(be,arr.length+1);
-                expect(ret.factors[arr.length].val).to(be,item.val);
-                expect(ret.factors[arr.length].positionInParent).to(be,"last");
-                expect(ret.factors[arr.length-1].val).to(be,arr[arr.length-1].val);
-                expect(ret.factors[arr.length-1].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr.length+1);
+                expect(ret.items[arr.length].val).to(be,item.val);
+                expect(ret.items[arr.length].positionInParent).to(be,"last");
+                expect(ret.items[arr.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.items[arr.length-1].positionInParent).to(be,arr.length-1);
             });
             it("should merge an item and a prod into a prod with updated annotations and the item at the beginning",function(){
                 var arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod(arr), 
                     item = {type: "testobj",val: 666}, ret = M.prod.multiply(item,prod);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"prod");
-                expect(ret.factors.length).to(be,arr.length+1);
-                expect(ret.factors[0].val).to(be,item.val);
-                expect(ret.factors[0].positionInParent).to(be,"first");
-                expect(ret.factors[1].val).to(be,arr[0].val);
-                expect(ret.factors[ret.factors.length-1].val).to(be,arr[arr.length-1].val);
-                expect(ret.factors[1].positionInParent).to(be,"inlist");
+                expect(ret.items.length).to(be,arr.length+1);
+                expect(ret.items[0].val).to(be,item.val);
+                expect(ret.items[0].positionInParent).to(be,"first");
+                expect(ret.items[1].val).to(be,arr[0].val);
+                expect(ret.items[ret.items.length-1].val).to(be,arr[arr.length-1].val);
+                expect(ret.items[1].positionInParent).to(be,1);
             });
             it("should return a zero if multiplying anything with a zero",function(){
                 var ret = M.prod.multiply( M.val(0), M.val(4 ) );
@@ -544,12 +542,12 @@ JSpec.describe("Math library",function(){
                     sum = M.sum([v1,v2,v3]), ret = M.prod.multiply(sum,item);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms.length).to(be,sum.terms.length);
-                expect(M.equal(M.prod.multiply(v1,item),ret.terms[0])).to(be,true);
-                expect(M.equal(M.prod.multiply(v2,item),ret.terms[1])).to(be,true);
-                expect(ret.terms[ret.terms.length-1].type).to(be,"prod");
-                expect(ret.terms[ret.terms.length-1].factors[0].type).to(be,v3.type);                
-                expect(M.equal(ret.terms[ret.terms.length-1].factors[1],item)).to(be,true);
+                expect(ret.items.length).to(be,sum.items.length);
+                expect(M.equal(M.prod.multiply(v1,item),ret.items[0])).to(be,true);
+                expect(M.equal(M.prod.multiply(v2,item),ret.items[1])).to(be,true);
+                expect(ret.items[ret.items.length-1].type).to(be,"prod");
+                expect(ret.items[ret.items.length-1].items[0].type).to(be,v3.type);                
+                expect(M.equal(ret.items[ret.items.length-1].items[1],item)).to(be,true);
               //  expect(M.sum.equal(ret,M.sum([M.prod.multiply(v1,item),M.prod.multiply(v2,item),M.prod.multiply(v3,item)]))).to(be,true);
             });
             it("should merge an item and a sum into a sum with all terms multiplied with the item from the left",function(){
@@ -557,12 +555,12 @@ JSpec.describe("Math library",function(){
                     sum = M.sum([v1,v2,v3]), ret = M.prod.multiply(item,sum);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(ret.terms.length).to(be,sum.terms.length);
-                expect(M.equal(M.prod.multiply(v1,item),ret.terms[0])).to(be,true);
-                expect(M.equal(M.prod.multiply(v2,item),ret.terms[1])).to(be,true);
-                expect(ret.terms[ret.terms.length-1].type).to(be,"prod");
-                expect(ret.terms[ret.terms.length-1].factors[1].type).to(be,v3.type);                
-                expect(M.equal(ret.terms[ret.terms.length-1].factors[0],item)).to(be,true);
+                expect(ret.items.length).to(be,sum.items.length);
+                expect(M.equal(M.prod.multiply(v1,item),ret.items[0])).to(be,true);
+                expect(M.equal(M.prod.multiply(v2,item),ret.items[1])).to(be,true);
+                expect(ret.items[ret.items.length-1].type).to(be,"prod");
+                expect(ret.items[ret.items.length-1].items[1].type).to(be,v3.type);                
+                expect(M.equal(ret.items[ret.items.length-1].items[0],item)).to(be,true);
               //  expect(M.sum.equal(ret,M.sum([M.prod.multiply(v1,item),M.prod.multiply(v2,item),M.prod.multiply(v3,item)]))).to(be,true);
             });
             it("should merge two sums into one, with each term in one multiplied with each term in the other",function(){
@@ -570,7 +568,7 @@ JSpec.describe("Math library",function(){
                     sum1 = M.sum([v1,v2]), sum2 = M.sum([v3,v4]), ret = M.prod.multiply(sum1,sum2);
                 expect(ret).to(be_an,M);
                 expect(ret.type).to(be,"sum");
-                expect(M.equal( ret.terms[0], M.prod.multiply(sum1.terms[0],sum2.terms[0]))).to(be,true);
+                expect(M.equal( ret.items[0], M.prod.multiply(sum1.items[0],sum2.items[0]))).to(be,true);
                 expect(M.equal( ret, M.sum([ M.prod.multiply(v1,v3),M.prod.multiply(v1,v4),M.prod.multiply(v2,v3),M.prod.multiply(v2,v4), ]) )).to(be,true);
             });
         });
