@@ -153,6 +153,36 @@ JSpec.describe("Math library",function(){
                 expect(ret === arr).to(be,false);
             });
         });
+        describe("Array remove",function(){
+            it("should be defined",function(){
+                expect(Array.remove).to(be_a,Function);
+            });
+            it("should remove items at given positions",function(){
+                var arr = ["a","b","c","d","e"], pos = [1,3], expected = ["a","c","e"];
+                expect(Array.remove(arr,pos)).to(eql,expected);
+            });
+        });
+        describe("Array insert",function(){
+            it("should be defined",function(){
+                expect(Array.insert).to(be_a,Function);
+            });
+            it("should insert new array at given position",function(){
+                var arr = ["a","b","c","d","e"], newitems = ["x","y"];
+                expect(Array.insert(arr,2,newitems)).to(eql,["a","b","x","y","c","d","e"]);
+                expect(Array.insert(arr,0,newitems)).to(eql,["x","y","a","b","c","d","e"]);
+                expect(Array.insert(arr,600,newitems)).to(eql,["a","b","c","d","e","x","y"]);
+            });
+        });
+        describe("Array exchange",function(){
+            it("should be defined",function(){
+                expect(Array.exchange).to(be_a,Function);
+            });
+            it("should remove items at given positions, and insert new items at earliest removed pos",function(){
+                var arr = ["a","b","c","d","e"], newitems = ["x","y"];
+                expect(Array.exchange(arr,[1,3],newitems)).to(eql,["a","x","y","c","e"]);
+                expect(Array.exchange(arr,[0,3,4],newitems)).to(eql,["x","y","b","c"]);
+            });
+        });
     });
     describe("The Value class",function(){
         it("should have a constructor on M",function(){

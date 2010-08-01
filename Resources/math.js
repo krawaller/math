@@ -16,24 +16,37 @@ Object.clone = function(obj){
     return clone;
 };
 
-Array.merge = function(a1,a2){
-    a1 = Object.clone(a1);
-    a2.map(function(i){ a1.push(i); });
-    return a1;
+Array.merge = function(){
+    return Array.prototype.concat.apply([],arguments);
 };
 
 Array.append = function(arr,item){
     var ret = Object.clone(arr);
     ret.push(item);
     return ret;
-}
+};
 
 Array.prepend = function(arr,item){
     var ret = [Object.clone(item)], arr = Object.clone(arr);
     arr.map(function(i){ ret.push(i); });
     return ret;
-}
+};
 
+Array.remove = function(arr,positions){
+    arr = Object.clone(arr), count = 0;
+    positions.sort().map(function(p){
+        arr.splice(p-count++,1);
+    });
+    return arr;
+};
+
+Array.insert = function(arr,position,newitems){
+    return Array.merge(arr.slice(0,position),newitems,arr.slice(position));
+};
+
+Array.exchange = function(arr,positions,newitems){
+    return Array.insert(Array.remove(arr,positions),Math.min.apply({},positions),newitems);
+};
 
 // ************************************ M abstract baseclass ************************************
 
