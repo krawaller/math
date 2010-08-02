@@ -55,6 +55,7 @@ Array.exchange = function(arr,positions,newitems){
 M.stmnt = function(o){
     var ret = M.obj();
     ret.type = "stmnt";
+    ret.objs = {};
     return ret;
 };
 
@@ -63,10 +64,13 @@ M.stmnt = function(o){
 
 M.objs = 0;
 
-M.obj = function(){
+M.obj = function(stmnt){
     var ret = {type:"base"};
     ret.constructor = M.obj;
     ret.id = ++M.objs;
+    if (stmnt){
+        stmnt.objs[ret.id] = ret;
+    }
     return ret;
 };
 
@@ -100,7 +104,7 @@ M.collection = function(arg){
     if (arg.items.length === 1){
         return arg.items[0];
     }
-    var ret = M.obj(),num = arg.items.length;
+    var ret = M.obj(arg.stmnt),num = arg.items.length;
     ret.type = arg.type;
     ret.items = [];
     for(var i=0;i<num;i++){
@@ -172,10 +176,13 @@ M.plc = function(){
 
 // ************************************ Value class *****************************************
 
-M.val = function(val){
-    var ret = M.obj();
+M.val = function(o){
+    if (typeof o === "number"){
+        o = {val:o};
+    }
+    var ret = M.obj(o.stmnt);
     ret.type = "val";
-    ret.val = val;
+    ret.val = o.val;
     return ret;
 };
 
@@ -185,8 +192,12 @@ M.val.equal = function(v1,v2){
 
 // ************************************ Sum class *******************************************
 
-M.sum = function(arr){
-    return M.collection({items:arr,type:"sum"});
+M.sum = function(o){
+    if (o instanceof Array){
+        o = {items: o};
+    }
+    o.type = "sum";
+    return M.collection(o);
 };
 
 M.sum.calc = function(sum){
@@ -301,8 +312,12 @@ M.sum.equal = function(s1,s2){
 
 // ********************************* Product class *****************************************
 
-M.prod = function(arr){
-    return M.collection({items:arr,type:"prod"});
+M.prod = function(o){
+    if (o instanceof Array){
+        o = {items: o};
+    }
+    o.type = "prod";
+    return M.collection(o);
 };
 
 M.prod.calc = function(prod){
