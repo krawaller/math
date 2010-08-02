@@ -52,9 +52,9 @@ Array.exchange = function(arr,positions,newitems){
 
 // ************************************ Statement class ******************************************
 
-M.statement = function(o){
-    var ret = { };
-    ret.constructor = M.statement;
+M.stmnt = function(o){
+    var ret = M.obj();
+    ret.type = "stmnt";
     return ret;
 };
 

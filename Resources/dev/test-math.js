@@ -91,12 +91,16 @@ JSpec.describe("Math library",function(){
     });
     describe("The statement class",function(){
         it("should be defined",function(){
-            expect(M.statement).to(be_a,Function);
+            expect(M.stmnt).to(be_a,Function);
         });
-        it("should be a constructor",function(){
-            var res = M.statement();
-            expect(res).to(be_an,M.statement);
-            expect(res.constructor).to(be,M.statement);
+        it("should inherit from M.obj",function(){
+            var res = M.stmnt();
+            expect(res).to(be_an,M.obj);
+            expect(res.type).to(be,"stmnt");
+        });
+        it("should have an id",function(){
+            var x = M.stmnt();
+            expect(x.id).to(be_a,Number);
         });
     });
     describe("The Placeholder class",function(){
@@ -104,8 +108,9 @@ JSpec.describe("Math library",function(){
             expect(M.plc).to(be_a,Function);
         });
         it("should inherit from M.obj",function(){
-            var x = M.plc();
-            expect(x).to(be_an,M.obj);
+            var res = M.plc();
+            expect(res).to(be_an,M.obj);
+            expect(res.type).to(be,"plc");
         });
         it("should have an id",function(){
             var x = M.plc(7);
@@ -211,7 +216,7 @@ JSpec.describe("Math library",function(){
         it("should have a constructor on M",function(){
             expect(M.val).to(be_a,Function);
         });
-        it("should inherit from M",function(){
+        it("should inherit from M.obj",function(){
             var x = M.val(7);
             expect(x).to(be_an,M.obj);
         });
