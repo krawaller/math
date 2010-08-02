@@ -89,7 +89,30 @@ JSpec.describe("Math library",function(){
             });
         });
     });
-    describe("The obj abstract class constructor",function(){
+    describe("The statement class",function(){
+        it("should be defined",function(){
+            expect(M.statement).to(be_a,Function);
+        });
+        it("should be a constructor",function(){
+            var res = M.statement();
+            expect(res).to(be_an,M.statement);
+            expect(res.constructor).to(be,M.statement);
+        });
+    });
+    describe("The Placeholder class",function(){
+        it("should have a constructor on M",function(){
+            expect(M.plc).to(be_a,Function);
+        });
+        it("should inherit from M.obj",function(){
+            var x = M.plc();
+            expect(x).to(be_an,M.obj);
+        });
+        it("should have an id",function(){
+            var x = M.plc(7);
+            expect(x.id).to(be_a,Number);
+        });
+    });
+    describe("The obj abstract class",function(){
         it("should be defined",function(){
             expect(M.obj).to(be_a,Function);
         });

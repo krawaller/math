@@ -1,4 +1,6 @@
 
+M = {};
+
 // ************************************ Helper methods *********************************
 
 Object.clone = function(obj){
@@ -48,9 +50,17 @@ Array.exchange = function(arr,positions,newitems){
     return Array.insert(Array.remove(arr,positions),Math.min.apply({},positions),newitems);
 };
 
+// ************************************ Statement class ******************************************
+
+M.statement = function(o){
+    var ret = { };
+    ret.constructor = M.statement;
+    return ret;
+};
+
+
 // ************************************ Obj abstract baseclass ************************************
 
-M = {};
 M.objs = 0;
 
 M.obj = function(){
@@ -151,6 +161,14 @@ M.collection.equal = function(s1,s2){
     return !fail;
 }
 
+
+// ************************************ Placeholder class *****************************************
+
+M.plc = function(){
+    var ret = M.obj();
+    ret.type = "plc";
+    return ret;
+};
 
 // ************************************ Value class *****************************************
 
