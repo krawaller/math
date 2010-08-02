@@ -48,18 +48,19 @@ Array.exchange = function(arr,positions,newitems){
     return Array.insert(Array.remove(arr,positions),Math.min.apply({},positions),newitems);
 };
 
-// ************************************ M abstract baseclass ************************************
+// ************************************ Obj abstract baseclass ************************************
 
-M = function(){
+M = {};
+M.objs = 0;
+
+M.obj = function(){
     var ret = {type:"base"};
-    ret.constructor = M;
+    ret.constructor = M.obj;
     ret.id = ++M.objs;
     return ret;
 };
 
-M.objs = 0;
-
-M.equal = function(a1,a2){
+M.obj.equal = function(a1,a2){
     if (typeof a1 !== "object" && typeof a2 !== "object"){
         return a1 === a2;
     }
@@ -76,26 +77,27 @@ M.equal = function(a1,a2){
     }
 }
 
-M.calc = function(item){
+M.obj.calc = function(item){
     if (typeof M[item.type] !== "object" || typeof M[item.type].calc !== "function"){
         return item;
     }
     return M[item.type].calc(item);
 }
 
-// *************************** Collection abstract class methods ******************************
+// *************************** Collection abstract class ******************************
 
 M.collection = function(arg){
     if (arg.items.length === 1){
         return arg.items[0];
     }
-    var ret = M(),num = arg.items.length;
+    var ret = M.obj(),num = arg.items.length;
     ret.type = arg.type;
     ret.items = [];
     for(var i=0;i<num;i++){
         o = Object.clone(arg.items[i]);
         o.parentType = arg.type;
         o.positionInParent = !i ? "first" : i === num - 1 ? "last" : i;
+        o.parentId = ret.id;
         ret.items.push(o);
     }
     return ret;
@@ -120,7 +122,7 @@ M.collection.harvestItems = function(col,depth){
 M.collection.removeItem = function(col,unwanted){
     var items = [];
     col.items.map(function(item){
-        if(!(M.equal(item,unwanted))){
+        if(!(M.obj.equal(item,unwanted))){
             items.push(item);
         }
     });
@@ -136,7 +138,7 @@ M.collection.equal = function(s1,s2){
         o.tolookfor.items.map(function(a1){
             found = false;
             o.tolookin.items.map(function(a2){
-                if (M.equal(a1,a2)){
+                if (M.obj.equal(a1,a2)){
                     found = true;
                 }
             });
@@ -153,7 +155,7 @@ M.collection.equal = function(s1,s2){
 // ************************************ Value class *****************************************
 
 M.val = function(val){
-    var ret = M();
+    var ret = M.obj();
     ret.type = "val";
     ret.val = val;
     return ret;
@@ -197,7 +199,7 @@ M.sum.calc = function(sum){
                     if (duplicates.indexOf(i)===-1){
                         found[i] = 1;
                         for(var j=0;j<obj[type].length;j++){
-                            if (j!=i && M.equal(obj[type][i],obj[type][j])){
+                            if (j!=i && M.obj.equal(obj[type][i],obj[type][j])){
                                 duplicates.push(j);
                                 found[i]++;
                             }
@@ -243,7 +245,7 @@ M.sum.add = function(a1,a2,order){
     // Adding a value to a sum merges it if sum contains value
     if ((a1.type==="sum" && a2.type==="val") || (a1.type==="val" && a2.type==="sum")){
         var sum = a1.type === "sum" ? a1 : a2, val = a1.type === "val" ? a1 : a2, arr = [], merged;
-       // sum = M.sum.calc(sum);
+       // sum = M.suM.obj.calc(sum);
         sum.items.map(function(term){
             if (term.type==="val" && !merged){
                 arr.push( M.sum.add(val,term) );
@@ -333,14 +335,14 @@ M.prod.flattenProduct = function(prod,depth){
 M.prod.multiply = function(a1,a2){
     var zero = M.val(0), one = M.val(1);
     // If either argument is a zero, just return 0
-    if (M.equal(a1,zero) || M.equal(a2,zero)){
+    if (M.obj.equal(a1,zero) || M.obj.equal(a2,zero)){
         return zero;
     }
     // If either argument is a unitless 1, return the other argument on its own
-    if (M.equal(a1,one)) {
+    if (M.obj.equal(a1,one)) {
         return a2;
     }
-    if (M.equal(a2,one)) {
+    if (M.obj.equal(a2,one)) {
         return a1;
     }
     // Multiplying two prods should return one single prod with all factors
