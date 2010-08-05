@@ -89,6 +89,19 @@ JSpec.describe("Math library",function(){
             });
         });
     });
+    describe("The container class",function(){
+        it("should be defined",function(){
+            expect(M.cnt).to(be_a,Function);
+        });
+        it("should have an objs storage object",function(){
+            var res = M.cnt();
+            expect(res.objs).to(be_an,Object);
+        });
+        it("should have a history object",function(){
+            var res = M.cnt();
+            expect(res.hist).to(be_an,Object);
+        });
+    });
     describe("The statement class",function(){
         it("should be defined",function(){
             expect(M.stmnt).to(be_a,Function);
@@ -101,10 +114,6 @@ JSpec.describe("Math library",function(){
         it("should have an id",function(){
             var x = M.stmnt();
             expect(x.id).to(be_a,Number);
-        });
-        it("should have an objs storage object",function(){
-            var res = M.stmnt();
-            expect(res.objs).to(be_an,Object);
         });
     });
     describe("The Placeholder class",function(){
@@ -137,11 +146,11 @@ JSpec.describe("Math library",function(){
             expect(o1.id>0).to(be,true);
             expect(o2.id>o1.id).to(be,true);
         });
-        it("should add the object to the statement if provided",function(){
-            var stmnt = M.stmnt(), o1 = M.obj(stmnt), o2 = M.obj(stmnt);
-            expect(stmnt.objs).to(be_an,Object);
-            expect(stmnt.objs[o1.id]).to(eql,o1);
-            expect(stmnt.objs[o2.id]).to(eql,o2);
+        it("should add the object to the container if provided",function(){
+            var cnt = M.cnt(), o1 = M.obj(cnt), o2 = M.obj(cnt);
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[o1.id]).to(eql,o1);
+            expect(cnt.objs[o2.id]).to(eql,o2);
         });
         describe("The equal function",function(){
             it("should be defined",function(){
@@ -201,9 +210,9 @@ JSpec.describe("Math library",function(){
             expect(col.items[arr.length-1].positionInParent).to(be,"last");
         });
         it("should add the object to the statement if provided",function(){
-            var stmnt = M.stmnt(), arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test",stmnt:stmnt});
-            expect(stmnt.objs).to(be_an,Object);
-            expect(stmnt.objs[col.id]).to(eql,col);
+            var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test",cnt:cnt});
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[col.id]).to(eql,col);
         });
         describe("The harvestItems function",function(){
             it("should be defined",function(){
@@ -245,9 +254,9 @@ JSpec.describe("Math library",function(){
             expect(x.val).to(equal,7);
         });
         it("should add the object to the statement if provided",function(){
-            var stmnt = M.stmnt(), o1 = M.val({stmnt:stmnt,val:8});
-            expect(stmnt.objs).to(be_an,Object);
-            expect(stmnt.objs[o1.id]).to(eql,o1);
+            var cnt = M.cnt(), o1 = M.val({cnt:cnt,val:8});
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[o1.id]).to(eql,o1);
         });
         describe("The equal function",function(){
             it("should be defined",function(){
@@ -297,9 +306,9 @@ JSpec.describe("Math library",function(){
             expect(x.items[arr.length-1].positionInParent).to(be,"last");
         });
         it("should add the object to the statement if provided",function(){
-            var stmnt = M.stmnt(), arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum({items:arr,stmnt:stmnt});
-            expect(stmnt.objs).to(be_an,Object);
-            expect(stmnt.objs[sum.id]).to(eql,sum);
+            var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum({items:arr,cnt:cnt});
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[sum.id]).to(eql,sum);
         });
         describe("The calc function",function(){
             it("should be defined",function(){
@@ -474,10 +483,10 @@ JSpec.describe("Math library",function(){
             expect(x.items[1].positionInParent).to(be,1);
             expect(x.items[arr.length-1].positionInParent).to(be,"last");
         });
-        it("should add the object to the statement if provided",function(){
-            var stmnt = M.stmnt(), arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod({items:arr,stmnt:stmnt});
-            expect(stmnt.objs).to(be_an,Object);
-            expect(stmnt.objs[prod.id]).to(eql,prod);
+        it("should add the object to the container if provided",function(){
+            var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], prod = M.prod({items:arr,cnt:cnt});
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[prod.id]).to(eql,prod);
         });
         describe("The removeOnes function",function(){
             it("should be defined",function(){

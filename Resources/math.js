@@ -50,12 +50,14 @@ Array.exchange = function(arr,positions,newitems){
     return Array.insert(Array.remove(arr,positions),Math.min.apply({},positions),newitems);
 };
 
-// ************************************ Statement class ******************************************
 
-M.stmnt = function(o){
+// ************************************ Container class ******************************************
+
+M.cnt = function(o){
     var ret = M.obj();
-    ret.type = "stmnt";
+    ret.type = "cnt";
     ret.objs = {};
+    ret.hist = {};
     return ret;
 };
 
@@ -64,12 +66,12 @@ M.stmnt = function(o){
 
 M.objs = 0;
 
-M.obj = function(stmnt){
+M.obj = function(cnt){
     var ret = {type:"base"};
     ret.constructor = M.obj;
     ret.id = ++M.objs;
-    if (stmnt){
-        stmnt.objs[ret.id] = ret;
+    if (cnt){
+        cnt.objs[ret.id] = ret;
     }
     return ret;
 };
@@ -98,13 +100,22 @@ M.obj.calc = function(item){
     return M[item.type].calc(item);
 }
 
+
+// ************************************ Statement class ******************************************
+
+M.stmnt = function(o){
+    var ret = M.obj();
+    ret.type = "stmnt";
+    return ret;
+};
+
 // *************************** Collection abstract class ******************************
 
 M.collection = function(arg){
     if (arg.items.length === 1){
         return arg.items[0];
     }
-    var ret = M.obj(arg.stmnt),num = arg.items.length;
+    var ret = M.obj(arg.cnt),num = arg.items.length;
     ret.type = arg.type;
     ret.items = [];
     for(var i=0;i<num;i++){
@@ -180,7 +191,7 @@ M.val = function(o){
     if (typeof o === "number"){
         o = {val:o};
     }
-    var ret = M.obj(o.stmnt);
+    var ret = M.obj(o.cnt);
     ret.type = "val";
     ret.val = o.val;
     return ret;
@@ -250,13 +261,6 @@ M.sum.flattenSum = function(sum,depth){
 
 M.sum.removeZeroes = function(sum){
     return M.collection.removeItem(sum,M.val(0));
-    var terms = [];
-    sum.items.map(function(item){
-        if(!(item.type === "val" && item.val === 0)){
-            terms.push(item);
-        }
-    });
-    return M.sum(terms);
 };
 
 M.sum.add = function(a1,a2,order){
