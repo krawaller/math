@@ -54,11 +54,20 @@ Array.exchange = function(arr,positions,newitems){
 // ************************************ Container class ******************************************
 
 M.cnt = function(o){
-    var ret = M.obj();
-    ret.type = "cnt";
-    ret.objs = {};
-    ret.hist = {};
+    var ret = {
+        type: "cnt",
+        objs: {},
+        hist: {}
+    };
     return ret;
+};
+
+M.cnt.store = function(cnt,o){
+    cnt.objs[o.id] = o;
+    if (!cnt.hist[o.id]){
+        cnt.hist[o.id] = {};
+    }
+    cnt.hist[o.id][cnt.step] = o;
 };
 
 
@@ -71,7 +80,7 @@ M.obj = function(cnt){
     ret.constructor = M.obj;
     ret.id = ++M.objs;
     if (cnt){
-        cnt.objs[ret.id] = ret;
+        M.cnt.store(cnt,ret);
     }
     return ret;
 };

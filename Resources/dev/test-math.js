@@ -16,6 +16,11 @@ JSpec.describe("Math library",function(){
                 expect(res).to(eql,a);
                 expect(a===res).to(be,false);
             });
+            it("should correctly clone nested objects",function(){
+                var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"}),
+                    res = Object.clone(col);
+                expect(res).to(eql,col);
+            });
             it("should return primitives as they are",function(){
                 var p = "moo", ret = Object.clone(p);
                 expect(ret).to(be,p);
@@ -100,6 +105,18 @@ JSpec.describe("Math library",function(){
         it("should have a history object",function(){
             var res = M.cnt();
             expect(res.hist).to(be_an,Object);
+        });
+        describe("The store function",function(){
+            it("should be defined",function(){
+                expect(M.cnt.store).to(be_a,Function);
+            });
+            it("should store an object in objs and make a history entry",function(){
+                var obj = M.val(7), cnt = M.cnt();
+                cnt.step = 32;
+                M.cnt.store(cnt,obj);
+                expect(cnt.objs[obj.id]).to(eql,obj);
+                expect(cnt.hist[obj.id][cnt.step]).to(eql,obj);
+            });
         });
     });
     describe("The statement class",function(){
