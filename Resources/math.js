@@ -132,31 +132,30 @@ M.stmnt = function(o){
 
 // *************************** Collection abstract class ******************************
 
-M.collection = function(arg){
-    if (arg.items.length === 1){
-        return arg.items[0];
-    }
-    var ret = M.obj(arg.cnt),num = arg.items.length;
-    ret.type = arg.type;
+M.col = function(o){
+    return M.obj( Object.merge(o,{items:[ M.plc({cnt:o.cnt}).id, M.plc({cnt:o.cnt}).id] }) );
+ /*   
     ret.items = [];
+    if (arg.items && arg.items.length > 0){
     for(var i=0;i<num;i++){
-        o = Object.clone(arg.items[i]);
+        var o = Object.clone(arg.items[i]);
         o.parentType = arg.type;
         o.positionInParent = !i ? "first" : i === num - 1 ? "last" : i;
         o.parentId = ret.id;
         ret.items.push(o);
     }
-    return ret;
+    }
+    return M.obj(ret); */
 };
 
-M.collection.harvestItems = function(col,depth){
+M.col.harvestItems = function(col,depth){
     var ret = [];
     if (depth === undefined){
         depth = -1;
     }
     col.items.map(function(item){
         if (item.type === col.type && depth !=0){
-            ret = Array.merge(ret,M.collection.harvestItems(item,depth-1));
+            ret = Array.merge(ret,M.col.harvestItems(item,depth-1));
         }
         else {
             ret.push(item);
@@ -165,7 +164,7 @@ M.collection.harvestItems = function(col,depth){
     return ret;
 };
 
-M.collection.removeItem = function(col,unwanted){
+M.col.removeItem = function(col,unwanted){
     var items = [];
     col.items.map(function(item){
         if(!(M.obj.equal(item,unwanted))){
@@ -175,7 +174,7 @@ M.collection.removeItem = function(col,unwanted){
     return M[col.type](items); 
 };
 
-M.collection.equal = function(s1,s2){
+M.col.equal = function(s1,s2){
     var found,fail;
     if (s1.items.length !== s2.items.length){
         return false;
@@ -224,7 +223,7 @@ M.sum = function(o){
         o = {items: o};
     }
     o.type = "sum";
-    return M.collection(o);
+    return M.col(o);
 };
 
 M.sum.calc = function(sum){
@@ -272,11 +271,11 @@ M.sum.calc = function(sum){
 };
 
 M.sum.flattenSum = function(sum,depth){
-    return M.sum( M.collection.harvestItems(sum,depth) );    //M.sum.harvestTerms(sum,depth));
+    return M.sum( M.col.harvestItems(sum,depth) );    //M.sum.harvestTerms(sum,depth));
 };
 
 M.sum.removeZeroes = function(sum){
-    return M.collection.removeItem(sum,M.val(0));
+    return M.col.removeItem(sum,M.val(0));
 };
 
 M.sum.add = function(a1,a2,order){
@@ -327,7 +326,7 @@ M.sum.add = function(a1,a2,order){
 };
 
 M.sum.equal = function(s1,s2){
-    return M.collection.equal(s1,s2);
+    return M.col.equal(s1,s2);
 }
 
 // ********************************* Product class *****************************************
@@ -337,7 +336,7 @@ M.prod = function(o){
         o = {items: o};
     }
     o.type = "prod";
-    return M.collection(o);
+    return M.col(o);
 };
 
 M.prod.calc = function(prod){
@@ -374,15 +373,15 @@ M.prod.calc = function(prod){
 };
 
 M.prod.equal = function(p1,p2){
-    return M.collection.equal(p1,p2);
+    return M.col.equal(p1,p2);
 };
 
 M.prod.removeOnes = function(prod){
-    return M.collection.removeItem(prod,M.val(1));
+    return M.col.removeItem(prod,M.val(1));
 };
 
 M.prod.flattenProduct = function(prod,depth){
-    return M.prod( M.collection.harvestItems(prod,depth) );
+    return M.prod( M.col.harvestItems(prod,depth) );
 }
 
 M.prod.multiply = function(a1,a2){

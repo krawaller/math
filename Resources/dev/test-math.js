@@ -17,7 +17,7 @@ JSpec.describe("Math library",function(){
                 expect(a===res).to(be,false);
             });
             it("should correctly clone nested objects",function(){
-                var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"}),
+                var arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test"}),
                     res = Object.clone(col);
                 expect(res).to(eql,col);
             });
@@ -180,7 +180,7 @@ JSpec.describe("Math library",function(){
                 expect(M.obj.equal(M.val(3),M.val(3))).to(be,true);
                 expect(M.obj.equal(M.val(3),M.val(4))).to(be,false);
             });
-            it("should correctly compare sums",function(){
+       /*     it("should correctly compare sums",function(){
                 var arr = [M.val(1),M.val(2)];
                 expect(M.obj.equal(M.sum(arr), M.sum(arr))).to(be,true);
                 expect(M.obj.equal(M.sum(arr), M.sum(Array.merge(arr,[M.val(4)])))).to(be,false);
@@ -189,7 +189,7 @@ JSpec.describe("Math library",function(){
                 var arr = [M.val(2),M.val(3)];
                 expect(M.obj.equal(M.prod(arr), M.prod(arr))).to(be,true);
                 expect(M.obj.equal(M.prod(arr), M.prod(Array.merge(arr,[M.val(4)])))).to(be,false);
-            });
+            }); */
         });
         describe("The calc function",function(){
             it("should be defined",function(){
@@ -201,55 +201,70 @@ JSpec.describe("Math library",function(){
             });
         });
     });
-    describe("The M.collection abstract class constructor",function(){
+    describe("The M.col abstract class constructor",function(){
         it("should be defined",function(){
-            expect(M.collection).to(be_a,Function);
+            expect(M.col).to(be_a,Function);
         });
         it("should be a constructor, using the type in the arg object",function(){
-            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            var cnt = M.cnt(), arr = [M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1})],
+                col = M.col({items:arr,type:"test"});
             expect(col).to(be_an,M.obj);
             expect(col.type).to(be,"test");
             expect(col.constructor).to(be,M.obj);
         });
-        it("should not create a collection if just 1 item in argument array",function(){
-            expect(M.collection({items:[M.val(3)]}).type).to(be,"val");
+    /*    it("should not create a collection if just 1 item in argument array",function(){ // TODO - rethink, only do on test
+            expect(M.col({items:[M.val(3)]}).type).to(be,"val");
+        }); */
+        it("should create two placeholder objects and set these as children",function(){
+            var cnt = M.cnt(), col = M.col({cnt:cnt, type:"test"});
+            expect(col.items.length).to(be,2);
+            expect(cnt.objs[ col.items[0] ].type).to(be,"plc");
+            expect(cnt.objs[ col.items[1] ].type).to(be,"plc");
         });
+        
+/*
+        
         it("should store copies of the value-made argument array in the items property",function(){
-            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            var cnt = M.cnt(), arr = [M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1})],
+                col = M.col({items:arr,type:"test"});
+                
+            var arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test"});
+            expect(col.items.length).to(be,arr.length);
             expect(col.items[0].val).to(be,arr[0].val);
             expect(col.items[0] === arr[0]).to(be,false);
         });
         it("should annotate the included objects",function(){
-            var arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test"});
+            var arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test"});
             expect(col.items[0].parentType).to(be,"test");
             expect(col.items[0].positionInParent).to(be,"first");
             expect(col.items[1].positionInParent).to(be,1);
             expect(col.items[arr.length-1].positionInParent).to(be,"last");
         });
         it("should add the object to the statement if provided",function(){
-            var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], col = M.collection({items:arr,type:"test",cnt:cnt});
+            var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test",cnt:cnt});
             expect(cnt.objs).to(be_an,Object);
             expect(cnt.objs[col.id]).to(eql,col);
+            console.log(cnt,col);
         });
         describe("The harvestItems function",function(){
             it("should be defined",function(){
-                expect(M.collection.harvestItems).to(be_a,Function);
+                expect(M.col.harvestItems).to(be_a,Function);
             });
             it("should return an array with all terms",function(){
-                var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.collection.harvestItems(sum);
+                var arr = [M.val(1),M.val(2),M.val(3)], sum = M.sum(arr), ret = M.col.harvestItems(sum);
                 expect(ret).to(eql,sum.items);
             });
             it("should also collect from nested sums",function(){
                 var arr1 = [M.val(1),M.val(2),M.val(3)], sum1 = M.sum(arr1), 
-                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.collection.harvestItems(sum2);
+                    arr2 = [M.val(4),M.val(5),sum1], sum2 = M.sum(arr2), ret = M.col.harvestItems(sum2);
                 expect(ret.length).to(be,5);
                 expect(M.obj.equal(M.sum(ret),M.sum(Array.merge(arr1,[arr2[0],arr2[1]])))).to(be,true);
             });
             it("should only collect to the given depth",function(){
                 var sum = M.sum([ M.val(1), M.sum([ M.val(2), M.sum([ M.val(3), M.sum([M.val(4),M.val(5)]) ]) ]) ]);
-                expect(M.collection.harvestItems(sum,1).length).to(be,3);
-                expect(M.collection.harvestItems(sum,2).length).to(be,4);
-                expect(M.collection.harvestItems(sum,0).length).to(be,2);
+                expect(M.col.harvestItems(sum,1).length).to(be,3);
+                expect(M.col.harvestItems(sum,2).length).to(be,4);
+                expect(M.col.harvestItems(sum,0).length).to(be,2);
             });
         });
     });
@@ -667,5 +682,6 @@ JSpec.describe("Math library",function(){
                 expect(M.obj.equal( ret, M.sum([ M.prod.multiply(v1,v3),M.prod.multiply(v1,v4),M.prod.multiply(v2,v3),M.prod.multiply(v2,v4), ]) )).to(be,true);
             });
         });
+        */
     });
 });
