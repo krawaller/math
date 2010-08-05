@@ -18,6 +18,20 @@ Object.clone = function(obj){
     return clone;
 };
 
+Object.merge = function(){
+    if (!arguments[0]){
+        arguments[0] = {};
+    }
+    if (!arguments[1]){
+        arguments[1] = {};
+    }
+    for (var property in arguments[1]) {
+        if (!arguments[0].hasOwnProperty(property)){ arguments[0][property] = arguments[1][property]; }
+    }
+    Array.prototype.splice.call(arguments,1,1);
+    return arguments.length === 1 ? arguments[0] : Object.merge.apply(0,arguments);
+}
+
 Array.merge = function(){
     return Array.prototype.concat.apply([],arguments);
 };
@@ -63,11 +77,11 @@ M.cnt = function(o){
 };
 
 M.cnt.store = function(cnt,o){
-    cnt.objs[o.id] = o;
+    cnt.objs[o.id] = Object.clone(o); // TODO - remove clonecalls when not needed
     if (!cnt.hist[o.id]){
         cnt.hist[o.id] = {};
     }
-    cnt.hist[o.id][cnt.step] = o;
+    cnt.hist[o.id][cnt.step] = Object.clone(o);
 };
 
 
@@ -75,14 +89,14 @@ M.cnt.store = function(cnt,o){
 
 M.objs = 0;
 
-M.obj = function(cnt){
-    var ret = {type:"base"};
-    ret.constructor = M.obj;
-    ret.id = ++M.objs;
-    if (cnt){
-        M.cnt.store(cnt,ret);
+M.obj = function(o){
+    o = o || {};
+    o.constructor = M.obj;
+    o = Object.merge(o,{type:"base",id: ++M.objs});
+    if (o.cnt){
+        M.cnt.store(o.cnt,o);
     }
-    return ret;
+    return o;
 };
 
 M.obj.equal = function(a1,a2){
@@ -113,9 +127,7 @@ M.obj.calc = function(item){
 // ************************************ Statement class ******************************************
 
 M.stmnt = function(o){
-    var ret = M.obj();
-    ret.type = "stmnt";
-    return ret;
+    return M.obj(Object.merge({type:"stmnt"},o));
 };
 
 // *************************** Collection abstract class ******************************
@@ -188,10 +200,8 @@ M.collection.equal = function(s1,s2){
 
 // ************************************ Placeholder class *****************************************
 
-M.plc = function(){
-    var ret = M.obj();
-    ret.type = "plc";
-    return ret;
+M.plc = function(o){
+    return M.obj(Object.merge({type:"plc"},o));
 };
 
 // ************************************ Value class *****************************************
@@ -200,10 +210,7 @@ M.val = function(o){
     if (typeof o === "number"){
         o = {val:o};
     }
-    var ret = M.obj(o.cnt);
-    ret.type = "val";
-    ret.val = o.val;
-    return ret;
+    return M.obj(Object.merge({type:"val"},o));
 };
 
 M.val.equal = function(v1,v2){

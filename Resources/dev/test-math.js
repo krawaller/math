@@ -163,8 +163,8 @@ JSpec.describe("Math library",function(){
             expect(o1.id>0).to(be,true);
             expect(o2.id>o1.id).to(be,true);
         });
-        it("should add the object to the container if provided",function(){
-            var cnt = M.cnt(), o1 = M.obj(cnt), o2 = M.obj(cnt);
+        it("should add a copy of the object to the container if provided",function(){
+            var cnt = M.cnt(), o1 = M.obj({cnt:cnt}), o2 = M.obj({cnt:cnt});
             expect(cnt.objs).to(be_an,Object);
             expect(cnt.objs[o1.id]).to(eql,o1);
             expect(cnt.objs[o2.id]).to(eql,o2);
