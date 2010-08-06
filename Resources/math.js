@@ -170,7 +170,7 @@ M.col.add = function(col,o){ // o contains child and container
         return col;
     }
     for(var i=0; i<col.items.length; i++){ // if placeholders present, replace one of them
-        if(o.cnt.objs[col.items[i]].type==="plc"){
+        if(o.cnt.objs[col.items[i]].type==="plc" && (!o.replaceid || o.replaceid === col.items[i])){
             insertindex = i;
             break;
         }
