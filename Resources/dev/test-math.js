@@ -169,6 +169,15 @@ JSpec.describe("Math library",function(){
             expect(cnt.objs[o1.id]).to(eql,o1);
             expect(cnt.objs[o2.id]).to(eql,o2);
         });
+        describe("The draw function",function(){
+            it("should be defined",function(){
+                expect(M.obj.draw).to(be_a,Function);
+            });
+            it("should return correct html",function(){
+                var cnt = M.cnt(), o = M.obj({type:"test",cnt:cnt});
+                expect(M.obj.draw(cnt,o)).to(be,"<div class='M_obj M_test' id='"+o.id+"'></div>");
+            });
+        });
         describe("The equal function",function(){
             it("should be defined",function(){
                 expect(M.obj.equal).to(be_a,Function);
@@ -201,6 +210,44 @@ JSpec.describe("Math library",function(){
             });
         });
     });
+    
+    describe("The Value class",function(){
+        it("should have a constructor on M",function(){
+            expect(M.val).to(be_a,Function);
+        });
+        it("should inherit from M.obj",function(){
+            var x = M.val(7);
+            expect(x).to(be_an,M.obj);
+        });
+        it("should have an id",function(){
+            var x = M.val(7);
+            expect(x.id).to(be_a,Number);
+        });
+        it("should have a val type and a val property",function(){
+            var x = M.val(7);
+            expect(x.type).to(be,"val");
+            expect(x.val).to(equal,7);
+        });
+        it("should add the object to the statement if provided",function(){
+            var cnt = M.cnt(), o1 = M.val({cnt:cnt,val:8});
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[o1.id]).to(eql,o1);
+        });
+        it("should be correctly drawn",function(){
+            var cnt = M.cnt(), val = M.val({val:7,cnt:cnt});
+            expect(M.obj.draw(cnt,val)).to(be,"<div class='M_obj M_val' id='"+val.id+"'><span>7</span></div>");
+        });
+        describe("The equal function",function(){
+            it("should be defined",function(){
+                expect(M.val.equal).to(be_a,Function);
+            });
+            it("should return false for two values with different val",function(){
+                var v1 = M.val(7), v2 = M.val(9), ret = M.val.equal(v1,v2);
+                expect(ret).to(be,false);
+            });
+        });
+    });
+    
     describe("The M.col abstract class constructor",function(){
         it("should be defined",function(){
             expect(M.col).to(be_a,Function);
@@ -220,6 +267,42 @@ JSpec.describe("Math library",function(){
             expect(col.items.length).to(be,2);
             expect(cnt.objs[ col.items[0] ].type).to(be,"plc");
             expect(cnt.objs[ col.items[1] ].type).to(be,"plc");
+        });
+        it("should be correctly drawn",function(){
+            var cnt = M.cnt(), col = M.col({cnt:cnt, type:"col"});
+            expect(M.obj.draw(cnt,col)).to(be,"<div class='M_obj M_col' id='"+col.id+"'><div class='M_obj M_plc' id='"+cnt.objs[ col.items[0] ].id+"'></div><div class='M_obj M_plc' id='"+cnt.objs[ col.items[1] ].id+"'></div></div>");
+        });
+        describe("The add function",function(){
+            it("should be defined",function(){
+                expect(M.col.add).to(be_a,Function);
+            });
+            it("should replace the placeholders with the item id:s, update container step and store col",function(){
+                var cnt = M.cnt(), col = M.col({cnt:cnt, type:"test"}),
+                    p1 = cnt.objs[col.items[0]], p2=cnt.objs[col.items[1]],
+                    v1 = M.val({cnt:cnt,val:1}), v2 = M.val({cnt:cnt,val:1}), v3 = M.val({cnt:cnt,val:1});
+                expect(p1.type).to(be,"plc");
+                expect(p2.type).to(be,"plc");
+                expect(col.items.length).to(be,2);
+                M.col.add(col,{child:v1,cnt:cnt});
+                col = cnt.objs[col.id];
+                expect(col.items.length).to(be,2);
+                expect(M.obj.equal( cnt.objs[col.items[0]], v1 ) ).to(be,true);
+                expect(M.obj.equal(cnt.objs[col.items[1]],p2)).to(be,true);
+                M.col.add(col,{child:v2,cnt:cnt});
+                col = cnt.objs[col.id];
+                expect(col.items.length).to(be,2);
+                expect(M.obj.equal(cnt.objs[col.items[0]],v1)).to(be,true);
+                expect(M.obj.equal(cnt.objs[col.items[1]],v2)).to(be,true);
+                M.col.add(col,{child:v3,cnt:cnt});
+                col = cnt.objs[col.id];
+                expect(col.items.length).to(be,3);
+                expect(M.obj.equal(cnt.objs[col.items[0]],v1)).to(be,true);
+                expect(M.obj.equal(cnt.objs[col.items[1]],v2)).to(be,true);
+                expect(M.obj.equal(cnt.objs[col.items[2]],v3)).to(be,true);
+                var i=0;
+                for(var p in cnt.hist[col.id]){ i++ };
+                expect(i).to(be,4);
+            });
         });
         
 /*
@@ -268,38 +351,7 @@ JSpec.describe("Math library",function(){
             });
         });
     });
-    describe("The Value class",function(){
-        it("should have a constructor on M",function(){
-            expect(M.val).to(be_a,Function);
-        });
-        it("should inherit from M.obj",function(){
-            var x = M.val(7);
-            expect(x).to(be_an,M.obj);
-        });
-        it("should have an id",function(){
-            var x = M.val(7);
-            expect(x.id).to(be_a,Number);
-        });
-        it("should have a val type and a val property",function(){
-            var x = M.val(7);
-            expect(x.type).to(be,"val");
-            expect(x.val).to(equal,7);
-        });
-        it("should add the object to the statement if provided",function(){
-            var cnt = M.cnt(), o1 = M.val({cnt:cnt,val:8});
-            expect(cnt.objs).to(be_an,Object);
-            expect(cnt.objs[o1.id]).to(eql,o1);
-        });
-        describe("The equal function",function(){
-            it("should be defined",function(){
-                expect(M.val.equal).to(be_a,Function);
-            });
-            it("should return false for two values with different val",function(){
-                var v1 = M.val(7), v2 = M.val(9), ret = M.val.equal(v1,v2);
-                expect(ret).to(be,false);
-            });
-        });
-    });
+
     describe("The sum class",function(){
         it("should have a constructor on M",function(){
             expect(M.sum).to(be_a,Function);

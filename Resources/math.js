@@ -71,17 +71,18 @@ M.cnt = function(o){
     var ret = {
         type: "cnt",
         objs: {},
-        hist: {}
+        hist: {},
+        step: 0
     };
     return ret;
 };
 
 M.cnt.store = function(cnt,o){
-    cnt.objs[o.id] = Object.clone(o); // TODO - remove clonecalls when not needed
+    cnt.objs[o.id] = o; //Object.clone(o); // TODO - remove clonecalls when not needed
     if (!cnt.hist[o.id]){
         cnt.hist[o.id] = {};
     }
-    cnt.hist[o.id][cnt.step] = Object.clone(o);
+    cnt.hist[o.id][cnt.step] = o; //Object.clone(o);
 };
 
 
@@ -99,6 +100,12 @@ M.obj = function(o){
     return o;
 };
 
+M.obj.draw = function(cnt,o){
+    var drawtype = (o.type === "sum" || o.type === "prod" ? "col" : o.type);
+//console.log(o.type,drawtype,M[drawtype] && M[drawtype].draw ? M[drawtype].draw : "NODRAW");
+    return "<div class='M_obj M_"+o.type+"' id='"+o.id+"'>" + (M[drawtype] && M[drawtype].draw ? M[drawtype].draw(cnt,o) : "") + "</div>";
+};
+
 M.obj.equal = function(a1,a2){
     if (typeof a1 !== "object" && typeof a2 !== "object"){
         return a1 === a2;
@@ -110,6 +117,7 @@ M.obj.equal = function(a1,a2){
         return false;
     }
     switch(a1.type){
+        case "plc": return a1 === a2;
         case "foo": return a2.type === "foo";
         case "bar": return a2.type === "bar";
         default: return M[a1.type].equal(a1,a2);
@@ -146,6 +154,30 @@ M.col = function(o){
     }
     }
     return M.obj(ret); */
+};
+
+M.col.draw = function(cnt,col){
+    var ret = "";
+    col.items.map(function(id){
+        ret += M.obj.draw(cnt,cnt.objs[id]);
+    });
+    return ret;
+};
+
+M.col.add = function(col,o){ // o contains child and container
+    var insertindex = col.items.length;
+    if (col.items.indexOf(o.child.id) !== -1){ // child already present in collection
+        return col;
+    }
+    for(var i=0; i<col.items.length; i++){ // if placeholders present, replace one of them
+        if(o.cnt.objs[col.items[i]].type==="plc"){
+            insertindex = i;
+            break;
+        }
+    }
+    col.items[insertindex] = o.child.id;
+    o.cnt.step++;
+    M.cnt.store(o.cnt,col); // store the updated collection in the container
 };
 
 M.col.harvestItems = function(col,depth){
@@ -215,6 +247,10 @@ M.val = function(o){
 M.val.equal = function(v1,v2){
     return v1.val === v2.val;
 };
+
+M.val.draw = function(cnt,val){
+    return "<span>"+val.val+"</span>";
+}
 
 // ************************************ Sum class *******************************************
 
