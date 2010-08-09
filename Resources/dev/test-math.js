@@ -17,9 +17,8 @@ JSpec.describe("Math library",function(){
                 expect(a===res).to(be,false);
             });
             it("should correctly clone nested objects",function(){
-                var arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test"}),
-                    res = Object.clone(col);
-                expect(res).to(eql,col);
+                var obj = {foo:"bar",fee:{bee:"moo"}};
+                expect(Object.clone(obj)).to(eql,obj);
             });
             it("should return primitives as they are",function(){
                 var p = "moo", ret = Object.clone(p);
@@ -111,7 +110,7 @@ JSpec.describe("Math library",function(){
                 expect(M.cnt.store).to(be_a,Function);
             });
             it("should store an object in objs and make a history entry",function(){
-                var obj = M.val(7), cnt = M.cnt();
+                var cnt = M.cnt(), obj = M.val(cnt,7);
                 cnt.step = 32;
                 M.cnt.store(cnt,obj);
                 expect(cnt.objs[obj.id]).to(eql,obj);
@@ -124,13 +123,13 @@ JSpec.describe("Math library",function(){
             expect(M.stmnt).to(be_a,Function);
         });
         it("should inherit from M.obj",function(){
-            var res = M.stmnt();
+            var cnt = M.cnt(), res = M.stmnt(cnt);
             expect(res).to(be_an,M.obj);
             expect(res.type).to(be,"stmnt");
         });
         it("should have an id",function(){
-            var x = M.stmnt();
-            expect(x.id).to(be_a,Number);
+            var cnt = M.cnt(), res = M.stmnt(cnt);
+            expect(res.id).to(be_a,Number);
         });
     });
     describe("The Placeholder class",function(){
@@ -138,13 +137,13 @@ JSpec.describe("Math library",function(){
             expect(M.plc).to(be_a,Function);
         });
         it("should inherit from M.obj",function(){
-            var res = M.plc();
+            var cnt = M.cnt(), res = M.plc(cnt);
             expect(res).to(be_an,M.obj);
             expect(res.type).to(be,"plc");
         });
         it("should have an id",function(){
-            var x = M.plc(7);
-            expect(x.id).to(be_a,Number);
+            var cnt = M.cnt(), res = M.plc(cnt);
+            expect(res.id).to(be_a,Number);
         });
     });
     describe("The obj abstract class",function(){
@@ -152,19 +151,19 @@ JSpec.describe("Math library",function(){
             expect(M.obj).to(be_a,Function);
         });
         it("should be a constructor",function(){
-            var res = M.obj();
+            var cnt = M.cnt(), res = M.obj(cnt);
             expect(res).to(be_an,M.obj);
             expect(res.type).to(be,"base");
             expect(res.constructor).to(be,M.obj);
         });
         it("should set a unique id on each object",function(){
-            var o1 = M.obj(), o2 = M.obj();
+            var cnt = M.cnt(), o1 = M.obj(cnt), o2 = M.obj(cnt);
             expect(o1.id).to(be_a,Number);
             expect(o1.id>0).to(be,true);
             expect(o2.id>o1.id).to(be,true);
         });
-        it("should add a copy of the object to the container if provided",function(){
-            var cnt = M.cnt(), o1 = M.obj({cnt:cnt}), o2 = M.obj({cnt:cnt});
+        it("should add a copy of the object to the container",function(){
+            var cnt = M.cnt(), o1 = M.obj(cnt), o2 = M.obj(cnt);
             expect(cnt.objs).to(be_an,Object);
             expect(cnt.objs[o1.id]).to(eql,o1);
             expect(cnt.objs[o2.id]).to(eql,o2);
@@ -174,7 +173,7 @@ JSpec.describe("Math library",function(){
                 expect(M.obj.draw).to(be_a,Function);
             });
             it("should return correct html",function(){
-                var cnt = M.cnt(), o = M.obj({type:"test",cnt:cnt});
+                var cnt = M.cnt(), o = M.obj(cnt,{type:"test"});
                 expect(M.obj.draw(cnt,o)).to(be,"<div class='M_obj M_test' id='"+o.id+"'></div>");
             });
         });
@@ -186,14 +185,21 @@ JSpec.describe("Math library",function(){
                 expect(M.obj.equal({type:"foo"},{type:"bar"})).to(be,false);
             });
             it("should correctly compare values",function(){
-                expect(M.obj.equal(M.val(3),M.val(3))).to(be,true);
-                expect(M.obj.equal(M.val(3),M.val(4))).to(be,false);
+                var cnt = M.cnt();
+                expect(M.obj.equal(cnt,M.val(cnt,3),M.val(cnt,3))).to(be,true);
+                expect(M.obj.equal(cnt,M.val(cnt,3),M.val(cnt,4))).to(be,false);
             });
-       /*     it("should correctly compare sums",function(){
-                var arr = [M.val(1),M.val(2)];
-                expect(M.obj.equal(M.sum(arr), M.sum(arr))).to(be,true);
-                expect(M.obj.equal(M.sum(arr), M.sum(Array.merge(arr,[M.val(4)])))).to(be,false);
-            });
+            it("should correctly compare sums",function(){
+                var cnt = M.cnt(), sum1 = M.sum(cnt), sum2 = M.sum(cnt);
+                M.col.add(cnt,sum1,M.val(cnt,2));
+                M.col.add(cnt,sum1,M.val(cnt,3));
+                M.col.add(cnt,sum2,M.val(cnt,3));
+                M.col.add(cnt,sum2,M.val(cnt,2));
+                expect(M.obj.equal(cnt,sum1,sum2)).to(be,true);
+                M.col.add(cnt,sum1,M.val(cnt,4));
+                M.col.add(cnt,sum2,M.val(cnt,5));
+                expect(M.obj.equal(cnt,sum1,sum2)).to(be,false);
+            });/*
             it("should correctly compare products",function(){
                 var arr = [M.val(2),M.val(3)];
                 expect(M.obj.equal(M.prod(arr), M.prod(arr))).to(be,true);
@@ -205,8 +211,8 @@ JSpec.describe("Math library",function(){
                 expect(M.obj.calc).to(be_a,Function);
             });
             it("should return values as they are",function(){
-                var val = M.val(32);
-                expect(M.obj.calc(val)).to(eql,val);
+                var cnt = M.cnt(), val = M.val(cnt,32);
+                expect(M.obj.calc(cnt,val)).to(eql,val);
             });
         });
     });
@@ -216,25 +222,25 @@ JSpec.describe("Math library",function(){
             expect(M.val).to(be_a,Function);
         });
         it("should inherit from M.obj",function(){
-            var x = M.val(7);
-            expect(x).to(be_an,M.obj);
+            var cnt = M.cnt(), val = M.val(cnt,7);
+            expect(val).to(be_an,M.obj);
         });
         it("should have an id",function(){
-            var x = M.val(7);
-            expect(x.id).to(be_a,Number);
+            var cnt = M.cnt(), val = M.val(cnt,7);
+            expect(val.id).to(be_a,Number);
         });
         it("should have a val type and a val property",function(){
-            var x = M.val(7);
-            expect(x.type).to(be,"val");
-            expect(x.val).to(equal,7);
+            var cnt = M.cnt(), val = M.val(cnt,7);
+            expect(val.type).to(be,"val");
+            expect(val.val).to(equal,7);
         });
-        it("should add the object to the statement if provided",function(){
-            var cnt = M.cnt(), o1 = M.val({cnt:cnt,val:8});
+        it("should add the object to the container",function(){
+            var cnt = M.cnt(), o1 = M.val(cnt,{val:8});
             expect(cnt.objs).to(be_an,Object);
             expect(cnt.objs[o1.id]).to(eql,o1);
         });
         it("should be correctly drawn",function(){
-            var cnt = M.cnt(), val = M.val({val:7,cnt:cnt});
+            var cnt = M.cnt(), val = M.val(cnt,{val:7});
             expect(M.obj.draw(cnt,val)).to(be,"<div class='M_obj M_val' id='"+val.id+"'><span>7</span></div>");
         });
         describe("The equal function",function(){
@@ -242,8 +248,87 @@ JSpec.describe("Math library",function(){
                 expect(M.val.equal).to(be_a,Function);
             });
             it("should return false for two values with different val",function(){
-                var v1 = M.val(7), v2 = M.val(9), ret = M.val.equal(v1,v2);
+                var cnt = M.cnt(), v1 = M.val(cnt,7), v2 = M.val(cnt,9), ret = M.val.equal(cnt,v1,v2);
                 expect(ret).to(be,false);
+            });
+        });
+    });
+    
+    describe("The fraction class",function(){
+        it("should have a constructor on M",function(){
+            expect(M.frc).to(be_a,Function);
+        });
+        it("should inherit from M.obj",function(){
+            var cnt = M.cnt(), frc = M.frc(cnt);
+            expect(frc).to(be_an,M.obj);
+        });
+        it("should have an id",function(){
+            var cnt = M.cnt(), frc = M.frc(cnt);
+            expect(frc.id).to(be_a,Number);
+        });
+        it("should have a frc type",function(){
+            var cnt = M.cnt(), frc = M.frc(cnt);
+            expect(frc.type).to(be,"frc");
+        });
+        it("should add the object to the container",function(){
+            var cnt = M.cnt(), o1 = M.frc(cnt);
+            expect(cnt.objs).to(be_an,Object);
+            expect(cnt.objs[o1.id]).to(eql,o1);
+        });
+        it("should have annotated placeholders set as numerator and denominator",function(){
+            var cnt = M.cnt(), frc = M.frc(cnt);
+            expect(cnt.objs[frc.num].type).to(be,"plc");
+            expect(cnt.objs[frc.num].ppos).to(be,"num");
+            expect(cnt.objs[frc.den].type).to(be,"plc");
+            expect(cnt.objs[frc.den].ppos).to(be,"den");
+        });
+        it("should be correctly drawn",function(){
+            var cnt = M.cnt(), frc = M.frc(cnt);
+            expect(M.obj.draw(cnt,frc)).to(be,"<div class='M_obj M_frc' id='"+frc.id+"'>"+
+                   "<div class='M_obj M_plc M_num' id='"+frc.num+"'></div>"+
+                   "<div class='M_obj M_plc M_den' id='"+frc.den+"'></div>"+
+                   "</div>");
+        });
+        describe("The setNumerator function",function(){
+            it("should be defined",function(){
+                expect(M.frc.setNumerator).to(be_a,Function);
+            });
+            it("should replace the placeholders with the item id:s, update container step and store col",function(){
+                var cnt = M.cnt(), frc = M.frc(cnt);
+                    p1 = cnt.objs[frc.num],
+                    v1 = M.val(cnt,{val:1}), v2 = M.val(cnt,{val:2});
+                expect(p1.type).to(be,"plc");
+                M.frc.setNumerator(cnt,frc,v1);
+                frc = cnt.objs[frc.id]; // needed?
+                expect(M.obj.equal(cnt,cnt.objs[frc.num],v1)).to(be,true);
+                expect(cnt.objs[frc.num].ppos).to(be,"num");
+                M.frc.setNumerator(cnt,frc,v2);
+                frc = cnt.objs[frc.id]; // needed?
+                expect(M.obj.equal(cnt,cnt.objs[frc.num],v2)).to(be,true);
+                var i=0;
+                for(var p in cnt.hist[frc.id]){ i++ };
+                expect(i).to(be,3);
+            });
+        });
+        describe("The setDenominator function",function(){
+            it("should be defined",function(){
+                expect(M.frc.setDenominator).to(be_a,Function);
+            });
+            it("should replace the placeholders with the item id:s, update container step and store col",function(){
+                var cnt = M.cnt(), frc = M.frc(cnt);
+                    p1 = cnt.objs[frc.den],
+                    v1 = M.val(cnt,{val:1}), v2 = M.val(cnt,{val:2});
+                expect(p1.type).to(be,"plc");
+                M.frc.setDenominator(cnt,frc,v1);
+                frc = cnt.objs[frc.id]; // needed?
+                expect(M.obj.equal(cnt,cnt.objs[frc.den],v1)).to(be,true);
+                expect(cnt.objs[frc.den].ppos).to(be,"den");
+                M.frc.setDenominator(cnt,frc,v2);
+                frc = cnt.objs[frc.id]; // needed?
+                expect(M.obj.equal(cnt,cnt.objs[frc.den],v2)).to(be,true);
+                var i=0;
+                for(var p in cnt.hist[frc.id]){ i++ };
+                expect(i).to(be,3);
             });
         });
     });
@@ -253,8 +338,7 @@ JSpec.describe("Math library",function(){
             expect(M.col).to(be_a,Function);
         });
         it("should be a constructor, using the type in the arg object",function(){
-            var cnt = M.cnt(), arr = [M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1}),M.val({cnt:cnt,val:1})],
-                col = M.col({items:arr,type:"test"});
+            var cnt = M.cnt(), col = M.col(cnt,{type:"test"});
             expect(col).to(be_an,M.obj);
             expect(col.type).to(be,"test");
             expect(col.constructor).to(be,M.obj);
@@ -263,42 +347,57 @@ JSpec.describe("Math library",function(){
             expect(M.col({items:[M.val(3)]}).type).to(be,"val");
         }); */
         it("should create two placeholder objects and set these as children",function(){
-            var cnt = M.cnt(), col = M.col({cnt:cnt, type:"test"});
+            var cnt = M.cnt(), col = M.col(cnt,{type:"test"});
             expect(col.items.length).to(be,2);
             expect(cnt.objs[ col.items[0] ].type).to(be,"plc");
             expect(cnt.objs[ col.items[1] ].type).to(be,"plc");
         });
         it("should be correctly drawn",function(){
-            var cnt = M.cnt(), col = M.col({cnt:cnt, type:"col"});
-            expect(M.obj.draw(cnt,col)).to(be,"<div class='M_obj M_col' id='"+col.id+"'><div class='M_obj M_plc' id='"+cnt.objs[ col.items[0] ].id+"'></div><div class='M_obj M_plc' id='"+cnt.objs[ col.items[1] ].id+"'></div></div>");
+            var cnt = M.cnt(), col = M.col(cnt,{type:"col"});
+            expect(M.obj.draw(cnt,col)).to(be,"<div class='M_obj M_col' id='"+col.id+"'><div class='M_obj M_plc M_first' id='"+cnt.objs[ col.items[0] ].id+"'></div><div class='M_obj M_plc M_last' id='"+cnt.objs[ col.items[1] ].id+"'></div></div>");
+        });
+        describe("The annotate function",function(){
+            it("should be defined",function(){
+                expect(M.col.annotate).to(be_a,Function);
+            });
+            it("should annotate the collection items",function(){
+                var cnt = M.cnt(), v1 = M.val(cnt,{val:1}), v2 = M.val(cnt,{val:1}), v3 = M.val(cnt,{val:1}),
+                    col = M.col(cnt,{type: "test"});
+                col.items = [v1.id,v2.id,v3.id];
+                M.col.annotate(cnt,col);
+                expect(cnt.objs[v1.id].ppos).to(be,"first");
+                expect(cnt.objs[v2.id].ppos).to(be,1);
+                expect(cnt.objs[v3.id].ppos).to(be,"last");
+            });
         });
         describe("The add function",function(){
             it("should be defined",function(){
                 expect(M.col.add).to(be_a,Function);
             });
             it("should replace the placeholders with the item id:s, update container step and store col",function(){
-                var cnt = M.cnt(), col = M.col({cnt:cnt, type:"test"}),
-                    p1 = cnt.objs[col.items[0]], p2=cnt.objs[col.items[1]],
-                    v1 = M.val({cnt:cnt,val:1}), v2 = M.val({cnt:cnt,val:1}), v3 = M.val({cnt:cnt,val:1});
+                var cnt = M.cnt(), col = M.col(cnt,{type:"test"}),
+                    p1 = cnt.objs[cnt.objs[col.id].items[0]],
+                    p2 = cnt.objs[cnt.objs[col.id].items[1]],
+                    v1 = M.val(cnt,{val:1}), v2 = M.val(cnt,{val:1}), v3 = M.val(cnt,{val:1});
                 expect(p1.type).to(be,"plc");
                 expect(p2.type).to(be,"plc");
                 expect(col.items.length).to(be,2);
-                M.col.add(col,{child:v1,cnt:cnt,replaceid:p2.id});
+                M.col.add(cnt,col,v1,{replaceid:p2.id});
                 col = cnt.objs[col.id];
                 expect(col.items.length).to(be,2);
-                expect(M.obj.equal(cnt.objs[col.items[0]],p1 ) ).to(be,true);
-                expect(M.obj.equal(cnt.objs[col.items[1]],v1)).to(be,true);
-                M.col.add(col,{child:v2,cnt:cnt});
+                expect(M.obj.equal(cnt,cnt.objs[col.items[0]],p1)).to(be,true);
+                expect(M.obj.equal(cnt,cnt.objs[col.items[1]],v1)).to(be,true);
+                M.col.add(cnt,col,v2);
                 col = cnt.objs[col.id];
                 expect(col.items.length).to(be,2);
-                expect(M.obj.equal(cnt.objs[col.items[0]],v2)).to(be,true);
-                expect(M.obj.equal(cnt.objs[col.items[1]],v1)).to(be,true);
-                M.col.add(col,{child:v3,cnt:cnt});
+                expect(M.obj.equal(cnt,cnt.objs[col.items[0]],v2)).to(be,true);
+                expect(M.obj.equal(cnt,cnt.objs[col.items[1]],v1)).to(be,true);
+                M.col.add(cnt,col,v3);
                 col = cnt.objs[col.id];
                 expect(col.items.length).to(be,3);
-                expect(M.obj.equal(cnt.objs[col.items[0]],v2)).to(be,true);
-                expect(M.obj.equal(cnt.objs[col.items[1]],v1)).to(be,true);
-                expect(M.obj.equal(cnt.objs[col.items[2]],v3)).to(be,true);
+                expect(M.obj.equal(cnt,cnt.objs[col.items[0]],v2)).to(be,true);
+                expect(M.obj.equal(cnt,cnt.objs[col.items[1]],v1)).to(be,true);
+                expect(M.obj.equal(cnt,cnt.objs[col.items[2]],v3)).to(be,true);
                 var i=0;
                 for(var p in cnt.hist[col.id]){ i++ };
                 expect(i).to(be,4);
@@ -327,7 +426,6 @@ JSpec.describe("Math library",function(){
             var cnt = M.cnt(), arr = [M.val(1),M.val(2),M.val(3)], col = M.col({items:arr,type:"test",cnt:cnt});
             expect(cnt.objs).to(be_an,Object);
             expect(cnt.objs[col.id]).to(eql,col);
-            console.log(cnt,col);
         });
         describe("The harvestItems function",function(){
             it("should be defined",function(){

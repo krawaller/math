@@ -90,23 +90,21 @@ M.cnt.store = function(cnt,o){
 
 M.objs = 0;
 
-M.obj = function(o){
+M.obj = function(cnt,o){
     o = o || {};
     o.constructor = M.obj;
     o = Object.merge(o,{type:"base",id: ++M.objs});
-    if (o.cnt){
-        M.cnt.store(o.cnt,o);
-    }
+    M.cnt.store(cnt,o);
     return o;
 };
 
 M.obj.draw = function(cnt,o){
     var drawtype = (o.type === "sum" || o.type === "prod" ? "col" : o.type);
 //console.log(o.type,drawtype,M[drawtype] && M[drawtype].draw ? M[drawtype].draw : "NODRAW");
-    return "<div class='M_obj M_"+o.type+"' id='"+o.id+"'>" + (M[drawtype] && M[drawtype].draw ? M[drawtype].draw(cnt,o) : "") + "</div>";
+    return "<div class='M_obj M_"+o.type+(o.ppos ? " M_"+o.ppos:"")+"' id='"+o.id+"'>" + (M[drawtype] && M[drawtype].draw ? M[drawtype].draw(cnt,o) : "") + "</div>";
 };
 
-M.obj.equal = function(a1,a2){
+M.obj.equal = function(cnt,a1,a2){
     if (typeof a1 !== "object" && typeof a2 !== "object"){
         return a1 === a2;
     }
@@ -120,11 +118,13 @@ M.obj.equal = function(a1,a2){
         case "plc": return a1 === a2;
         case "foo": return a2.type === "foo";
         case "bar": return a2.type === "bar";
-        default: return M[a1.type].equal(a1,a2);
+        case "sum":
+        case "col": return M.col.equal(cnt,a1,a2);
+        default: return M[a1.type].equal(cnt,a1,a2);
     }
 }
 
-M.obj.calc = function(item){
+M.obj.calc = function(cnt,item){
     if (typeof M[item.type] !== "object" || typeof M[item.type].calc !== "function"){
         return item;
     }
@@ -134,14 +134,18 @@ M.obj.calc = function(item){
 
 // ************************************ Statement class ******************************************
 
-M.stmnt = function(o){
-    return M.obj(Object.merge({type:"stmnt"},o));
+M.stmnt = function(cnt,o){
+    return M.obj(cnt,Object.merge({type:"stmnt"},o));
 };
 
 // *************************** Collection abstract class ******************************
 
-M.col = function(o){
-    return M.obj( Object.merge(o,{items:[ M.plc({cnt:o.cnt}).id, M.plc({cnt:o.cnt}).id] }) );
+M.col = function(cnt,o){
+    var col = M.obj(cnt,Object.merge({items:[]},o));
+    M.col.add( cnt, col, M.plc(cnt) );
+    M.col.add( cnt, col, M.plc(cnt) );
+    return cnt.objs[col.id];
+//    return M.obj( Object.merge(o,{items:[ M.plc(cnt).id, M.plc(cnt).id] }) );
  /*   
     ret.items = [];
     if (arg.items && arg.items.length > 0){
@@ -156,6 +160,16 @@ M.col = function(o){
     return M.obj(ret); */
 };
 
+M.col.annotate = function(cnt,col){
+    var num = col.items.length;
+    for(var i=0;i<num;i++){
+        var o = cnt.objs[col.items[i]], ppos = !i ? "first" : i === num - 1 ? "last" : i;
+        if (o.ppos != ppos){
+            M.cnt.store(cnt,Object.merge({ppos:ppos},o));
+        }
+    }
+}
+
 M.col.draw = function(cnt,col){
     var ret = "";
     col.items.map(function(id){
@@ -164,20 +178,23 @@ M.col.draw = function(cnt,col){
     return ret;
 };
 
-M.col.add = function(col,o){ // o contains child and container
-    var insertindex = col.items.length;
-    if (col.items.indexOf(o.child.id) !== -1){ // child already present in collection
+M.col.add = function(cnt,col,obj,o){ // o contains child and container
+    var insertindex = col.items.length, o = o ? o : {}, obj;
+    if (col.items.indexOf(obj.id) !== -1){ // child already present in collection
         return col;
     }
-    for(var i=0; i<col.items.length; i++){ // if placeholders present, replace one of them
-        if(o.cnt.objs[col.items[i]].type==="plc" && (!o.replaceid || o.replaceid === col.items[i])){
-            insertindex = i;
-            break;
+    if (obj.type !== "plc"){
+        for(var i=0; i<col.items.length; i++){ // if placeholders present, replace one of them
+            if(cnt.objs[col.items[i]].type==="plc" && (!o.replaceid || o.replaceid === col.items[i])){
+                insertindex = i;
+                break;
+            }
         }
+        cnt.step++;
     }
-    col.items[insertindex] = o.child.id;
-    o.cnt.step++;
-    M.cnt.store(o.cnt,col); // store the updated collection in the container
+    col.items[insertindex] = obj.id;
+    M.cnt.store(cnt,col); // store the updated collection in the container
+    M.col.annotate(cnt,col);
 };
 
 M.col.harvestItems = function(col,depth){
@@ -206,16 +223,16 @@ M.col.removeItem = function(col,unwanted){
     return M[col.type](items); 
 };
 
-M.col.equal = function(s1,s2){
+M.col.equal = function(cnt,s1,s2){
     var found,fail;
     if (s1.items.length !== s2.items.length){
         return false;
     }
     [{tolookfor:s1,tolookin:s2},{tolookfor:s2,tolookin:s1}].map(function(o){
-        o.tolookfor.items.map(function(a1){
+        o.tolookfor.items.map(function(id1){
             found = false;
-            o.tolookin.items.map(function(a2){
-                if (M.obj.equal(a1,a2)){
+            o.tolookin.items.map(function(id2){
+                if (M.obj.equal(cnt,cnt.objs[id1],cnt.objs[id2])){
                     found = true;
                 }
             });
@@ -231,35 +248,68 @@ M.col.equal = function(s1,s2){
 
 // ************************************ Placeholder class *****************************************
 
-M.plc = function(o){
-    return M.obj(Object.merge({type:"plc"},o));
+M.plc = function(cnt,o){
+    return M.obj(cnt,Object.merge({type:"plc"},o));
 };
 
 // ************************************ Value class *****************************************
 
-M.val = function(o){
+M.val = function(cnt,o){
     if (typeof o === "number"){
         o = {val:o};
     }
-    return M.obj(Object.merge({type:"val"},o));
+    return M.obj(cnt,Object.merge({type:"val"},o));
 };
 
-M.val.equal = function(v1,v2){
+M.val.equal = function(cnt,v1,v2){
     return v1.val === v2.val;
 };
 
 M.val.draw = function(cnt,val){
     return "<span>"+val.val+"</span>";
+};
+
+// ******************************** Fraction class *******************************************
+
+M.frc = function(cnt,o){
+    var frc = M.obj(cnt,Object.merge({type:"frc"},o));
+    M.frc.setNumerator(cnt,frc,M.plc(cnt));
+    frc = cnt.objs[frc.id];
+    M.frc.setDenominator(cnt,frc,M.plc(cnt));
+    frc = cnt.objs[frc.id];
+    return frc;
+};
+
+M.frc.setNumerator = function(cnt,frc,obj){
+    return M.frc.setObj(cnt,frc,obj,"num");
+};
+
+M.frc.setDenominator = function(cnt,frc,obj){
+    return M.frc.setObj(cnt,frc,obj,"den");
+};
+
+M.frc.setObj = function(cnt,frc,obj,place){
+    if (frc[place] === obj.id){
+        return frc;
+    }
+    obj.ppos = place;
+    frc[place] = obj.id;
+    if (obj.type !== "plc"){
+        cnt.step++;
+    }
+    M.cnt.store(cnt,frc);
+    M.cnt.store(cnt,obj);
+    return frc;
 }
+
+M.frc.draw = function(cnt,frc){
+    return M.obj.draw(cnt,cnt.objs[frc.num]) + M.obj.draw(cnt,cnt.objs[frc.den]);
+};
 
 // ************************************ Sum class *******************************************
 
-M.sum = function(o){
-    if (o instanceof Array){
-        o = {items: o};
-    }
-    o.type = "sum";
-    return M.col(o);
+M.sum = function(cnt,o){
+    return M.col(cnt,{type:"sum"}); //Object.merge({type:"sum"},o || {}));
 };
 
 M.sum.calc = function(sum){
@@ -361,8 +411,8 @@ M.sum.add = function(a1,a2,order){
 
 };
 
-M.sum.equal = function(s1,s2){
-    return M.col.equal(s1,s2);
+M.sum.equal = function(cnt,s1,s2){
+    return M.col.equal(cnt,s1,s2);
 }
 
 // ********************************* Product class *****************************************
